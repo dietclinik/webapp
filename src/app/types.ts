@@ -1,0 +1,53 @@
+
+import { z } from 'zod';
+
+export const ProcessCustomerInputSchema = z.object({
+    paymentSuccess: z.boolean(),
+    isRenewal: z.boolean().optional().default(false),
+    userId: z.string().optional(),
+    vendorId: z.string().optional(),
+    vendorName: z.string().optional(),
+    customerData: z.object({
+        name: z.string(),
+        email: z.string().email(),
+        mobile: z.string(),
+        address: z.string().optional(),
+        bloodGroup: z.string().optional(),
+        planId: z.string(),
+        dietPlanId: z.string().nullable(),
+        status: z.string(),
+        since: z.string(),
+        isNew: z.boolean(),
+        paymentStatus: z.string(),
+        subscriptionStartDate: z.string(),
+        subscriptionEndDate: z.string(),
+        customFields: z.record(z.any()),
+    }),
+    profileData: z.object({
+        name: z.string(),
+        email: z.string().email(),
+        age: z.string(),
+        gender: z.string(),
+        foodPreference: z.enum(["veg", "non-veg"]).optional(),
+        height: z.string(),
+        weight: z.string(),
+        goal: z.string().optional(),
+        healthProblems: z.string().optional(),
+        allergies: z.string().optional(),
+        protein: z.string().optional(),
+        carbs: z.string().optional(),
+        fat: z.string().optional(),
+        fibre: z.string().optional(),
+        smoking: z.enum(["yes", "no"]).optional(),
+        alcohol: z.enum(["yes", "no"]).optional(),
+        frontImageDataUri: z.string().optional().describe("A front-facing photo of the customer, as a data URI."),
+        backImageDataUri: z.string().optional().describe("A back-facing photo of the customer, as a data URI."),
+        leftImageDataUri: z.string().optional().describe("A left-side photo of the customer, as a data URI."),
+        rightImageDataUri: z.string().optional().describe("A right-side photo of the customer, as a data URI."),
+    }),
+    bmiValue: z.string().optional(),
+    bmiMessage: z.string().optional(),
+    bmrValue: z.string().optional(),
+});
+
+export type ProcessCustomerInput = z.infer<typeof ProcessCustomerInputSchema>;

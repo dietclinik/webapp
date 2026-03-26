@@ -1,0 +1,44 @@
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Allow public read access to staff photos and resumes
+    match /staff_photos/{allPaths=**} {
+      allow read;
+    }
+    match /staff_resumes/{allPaths=**} {
+      allow read;
+    }
+
+    // Allow authenticated users to manage their own profile pictures
+    match /profile_pictures/{userId}/{allPaths=**} {
+      allow read;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow partners to manage their own profile pictures
+    match /partner_pictures/{partnerId}/{allPaths=**} {
+      allow read;
+      allow write: if request.auth != null && request.auth.uid == partnerId;
+    }
+
+    // Allow vendors to manage their own profile pictures
+    match /vendor_pictures/{vendorId}/{fileName} {
+      allow read;
+      allow write: if request.auth != null && request.auth.uid == vendorId;
+    }
+
+    // Allow users to upload their meal log images
+    match /user_logs/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow public read and write access for Fitboss logos
+    match /fitboss_logos/{allPaths=**} {
+      allow read, write;
+    }
+
+  }
+}

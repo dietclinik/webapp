@@ -1,0 +1,180 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAdmin() {
+      return get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isStaff() {
+      return exists(/databases/$(database)/documents/staff/$(request.auth.uid));
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isAssignedStaff(userId) {
+      return get(/databases/$(database)/documents/customers/$(userId)).data.assignedStaffId == request.auth.uid;
+    }
+
+    function isVendor() {
+      return exists(/databases/$(database)/documents/vendors/$(request.auth.uid));
+    }
+
+    function isAssignedVendor(userId) {
+      return get(/databases/$(database)/documents/customers/$(userId)).data.vendorId == request.auth.uid;
+    }
+    
+    function isCorporate() {
+      return exists(/databases/$(database)/documents/corporates/$(request.auth.uid));
+    }
+
+    function isCustomerCorporate(customerId) {
+        let customerDoc = get(/databases/$(database)/documents/customers/$(customerId));
+        return customerDoc.exists && customerDoc.data.corporateId == request.auth.uid;
+    }
+
+    function isEventOwner(eventId) {
+      let eventDoc = get(/databases/$(database)/documents/corporateEvents/$(eventId));
+      return eventDoc.exists && eventDoc.data.corporateId == request.auth.uid;
+    }
+    
+    function isCorporateWithCustomer(userId) {
+      let customerDoc = get(/databases/$(database)/documents/customers/$(userId));
+      return customerDoc.exists && customerDoc.data.corporateId == request.auth.uid;
+    }
+
+
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /customers/{customerId} {
+      allow read: if isOwner(customerId) || isAdmin() || isStaff() || isAssignedVendor(customerId) || isCustomerCorporate(customerId);
+      allow write: if isOwner(customerId) || isAdmin() || isAssignedStaff(customerId);
+      allow create: if true;
+    }
+    
+    match /customers/{customerId}/dietPlanHistory/{historyId} {
+       allow read: if isOwner(customerId) || isAdmin() || isAssignedVendor(customerId);
+       allow create: if isAssignedStaff(customerId) || isAdmin();
+    }
+    
+    match /customers/{customerId}/scores/{scoreId} {
+        allow read: if isOwner(customerId) || isAdmin() || isStaff() || isAssignedVendor(customerId) || isCustomerCorporate(customerId);
+        allow write: if isAdmin() || isCustomerCorporate(customerId);
+    }
+
+    match /userProfiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin() || isStaff() || isAssignedVendor(userId) || isCorporateWithCustomer(userId);
+      allow write: if isOwner(userId) || isAdmin();
+      allow create: if true;
+    }
+    
+    match /staff/{staffId} {
+      allow read: if isOwner(staffId) || isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    match /vendors/{vendorId} {
+      allow read: if isOwner(vendorId) || isAdmin();
+      allow write: if isOwner(vendorId) || isAdmin();
+    }
+
+    match /corporates/{corporateId} {
+      allow read: if isOwner(corporateId) || isAdmin();
+      allow write: if isOwner(corporateId) || isAdmin();
+    }
+    
+    match /subscriptionPlans/{planId} {
+        allow read: if true; // Publicly readable
+        allow write: if isAdmin();
+    }
+
+    match /dietPlans/{planId} {
+      allow read: if request.auth != null && (get(/databases/$(database)/documents/customers/$(request.auth.uid)).data.dietPlanId == planId || isAdmin() || isStaff() || isVendor());
+      allow write: if isAdmin() || (isStaff() && resource.data.createdBy == request.auth.uid) || (isVendor() && resource.data.createdBy == request.auth.uid);
+      allow create: if isAdmin() || isStaff() || isVendor();
+      allow delete: if isAdmin() || (isStaff() && resource.data.createdBy == request.auth.uid) || (isVendor() && resource.data.createdBy == request.auth.uid);
+    }
+    
+    match /users/{userId}/dieticianPlanLogs/{logId} {
+        allow read: if isOwner(userId) || isAdmin() || isStaff() || isAssignedVendor(userId);
+        allow write: if isOwner(userId);
+    }
+
+    match /users/{userId}/selfDietPlans/{logId} {
+        allow read: if isOwner(userId) || isAdmin() || isStaff() || isAssignedVendor(userId);
+        allow write: if isOwner(userId);
+    }
+     match /users/{userId}/activityLogs/{logId} {
+        allow read: if isOwner(userId) || isAdmin() || isStaff() || isAssignedVendor(userId);
+        allow write: if isOwner(userId);
+    }
+    
+    match /dailyWeightLogs/{logId} {
+        allow read: if resource.data.userId == request.auth.uid || isAdmin() || isStaff() || isAssignedVendor(resource.data.userId);
+        allow create: if request.resource.data.userId == request.auth.uid;
+        allow delete: if resource.data.userId == request.auth.uid;
+    }
+    
+    match /measurementLogs/{logId} {
+        allow read: if resource.data.userId == request.auth.uid || isAdmin() || isStaff() || isAssignedVendor(resource.data.userId);
+        allow create: if request.resource.data.userId == request.auth.uid;
+    }
+
+    match /supportTickets/{ticketId} {
+        allow read, create: if request.auth != null;
+        allow write, delete: if isAdmin();
+    }
+    
+    match /notifications/{notificationId} {
+        allow read: if resource.data.userId == request.auth.uid || resource.data.userId == 'admin';
+        allow write: if request.auth != null; // Allow server-side flows to create/update
+    }
+
+    match /contactSubmissions/{submissionId} {
+        allow read, write, delete: if isAdmin();
+        allow create: if true; // Allow anyone to submit
+    }
+
+    match /meetings/{meetingId} {
+      allow read, write: if isAdmin(); // Only admin can create/manage meetings
+    }
+    
+    match /events/{eventId} {
+        allow read: if true; // Publicly readable for registration
+        allow create, write, delete: if isAdmin();
+    }
+    
+    match /corporateEvents/{eventId} {
+        allow list: if isCorporate();
+        allow read: if isCorporate() && resource.data.corporateId == request.auth.uid; 
+        allow create: if isCorporate();
+        allow write, delete: if isAdmin() || isEventOwner(eventId);
+    }
+    
+    match /corporateEvents/{eventId}/registrations/{registrationId} {
+        allow read, list: if isEventOwner(eventId) || isAdmin();
+        allow create: if true; // Public registration
+        
+        match /scores/{scoreId} {
+            allow read: if isEventOwner(eventId) || isAdmin();
+            allow write: if isEventOwner(eventId);
+        }
+    }
+
+    match /subscriptionHistory/{historyId} {
+      allow read: if resource.data.userId == request.auth.uid || isAdmin() || isVendor();
+      allow create: if request.auth != null;
+    }
+
+    match /partnerEnquiries/{enquiryId} {
+      allow read: if isVendor() && resource.data.partnerId == request.auth.uid;
+      allow create: if isVendor() && request.resource.data.partnerId == request.auth.uid;
+    }
+  }
+}
