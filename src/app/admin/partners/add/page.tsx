@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,6 +14,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { useFirebase } from "@/components/firebase-provider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { processPartner } from "@/ai/flows/send-partner-welcome-email-flow";
 
 const formSchema = z.object({
@@ -21,13 +30,16 @@ const formSchema = z.object({
   email: z.string().email("Invalid email address."),
   mobile: z.string().regex(/^\d{10}$/, "Must be a valid 10-digit mobile number."),
   address: z.string().min(5, "Address is required."),
+  planId: z.string().min(1, "Please select a plan."),
 });
 
 type PartnerFormData = z.infer<typeof formSchema>;
 
 export default function AddPartnerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [plans, setPlans] = useState<{ id: string; name: string }[]>([]);
   const { toast } = useToast();
+  const { db } = useFirebase();
   const router = useRouter();
 
   const form = useForm<PartnerFormData>({
@@ -37,8 +49,29 @@ export default function AddPartnerPage() {
       email: "",
       mobile: "",
       address: "",
+      planId: "",
     },
   });
+
+  useEffect(() => {
+    if (!db) return;
+    const fetchPlans = async () => {
+      try {
+        const plansRef = collection(db, "subscriptionPlans");
+        const q = query(plansRef, where("planFor", "==", "vendor"), where("status", "==", "Active"));
+        const snapshot = await getDocs(q);
+        const fetchedPlans = snapshot.docs.map(doc => ({
+          id: doc.id,
+          name: doc.data().name,
+        }));
+        setPlans(fetchedPlans);
+      } catch (error) {
+        console.error("Error fetching plans:", error);
+        toast({ variant: "destructive", title: "Error", description: "Could not load subscription plans." });
+      }
+    };
+    fetchPlans();
+  }, [db, toast]);
 
   const onSubmit = async (data: PartnerFormData) => {
     setIsSubmitting(true);
@@ -46,10 +79,11 @@ export default function AddPartnerPage() {
       const result = await processPartner({
         paymentSuccess: true, // Admin-added partners are considered successful payments
         vendorData: {
-            name: data.name,
-            email: data.email,
-            mobile: data.mobile,
-            address: data.address,
+          name: data.name,
+          email: data.email,
+          mobile: data.mobile,
+          address: data.address,
+          planId: data.planId,
         }
       });
       if (result.userId) {
@@ -97,6 +131,28 @@ export default function AddPartnerPage() {
               )} />
               <FormField control={form.control} name="mobile" render={({ field }) => (
                 <FormItem><FormLabel>Mobile Number *</FormLabel><FormControl><Input placeholder="9876543210" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField control={form.control} name="planId" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Subscription Plan *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a plan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {plans.map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )} />
             </div>
             <FormField control={form.control} name="address" render={({ field }) => (
