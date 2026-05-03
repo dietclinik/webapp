@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
             otp,
             expiresAt,
             userId: userDoc.id,
-            email: userData.email,
+            email: userData.email ?? null,
             userType,
         });
 
