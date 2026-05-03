@@ -47,6 +47,7 @@ export function UserNav({ userType = 'customer' }: UserNavProps) {
             let collectionName = '';
              switch (userType) {
                 case 'customer': collectionName = 'userProfiles'; break;
+                case 'admin': collectionName = 'admins'; break;
                 case 'staff': collectionName = 'staff'; break;
                 case 'partner': collectionName = 'vendors'; break;
                 case 'corporate': collectionName = 'corporates'; break;
@@ -83,7 +84,7 @@ export function UserNav({ userType = 'customer' }: UserNavProps) {
   }
 
   let profile_link = "/dashboard/profile";
-  if (userType === 'admin') profile_link = '/admin/settings';
+  if (userType === 'admin') profile_link = '/admin/profile';
   if (userType === 'staff') profile_link = '/staff/profile';
   if (userType === 'partner') profile_link = '/partner/profile';
   if (userType === 'corporate') profile_link = '/corporate/profile';
@@ -92,7 +93,7 @@ export function UserNav({ userType = 'customer' }: UserNavProps) {
   const name = user?.displayName || user?.email?.split('@')[0] || "User";
   const email = user?.email || "";
   const logoImage = settings?.themeSettings?.logoImage;
-  const avatarSrc = userType === 'admin' ? logoImage : userPhotoUrl;
+  const avatarSrc = userPhotoUrl || (userType === 'admin' ? logoImage : null);
 
 
   if (!user) {
