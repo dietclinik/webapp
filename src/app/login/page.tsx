@@ -33,7 +33,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   
-  const [loginMethod, setLoginMethod] = useState<'email' | 'whatsapp'>('email');
+  const [loginMethod, setLoginMethod] = useState<'whatsapp' | 'email'>('whatsapp');
   const [countryCode, setCountryCode] = useState("91");
   const [mobileNumber, setMobileNumber] = useState("");
   const [phoneNumber, setPhoneNumber] = useState(""); // Combined full number
@@ -191,38 +191,15 @@ export default function LoginPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <Tabs defaultValue="email" onValueChange={(val) => setLoginMethod(val as any)}>
+                <Tabs defaultValue="whatsapp" onValueChange={(val) => setLoginMethod(val as any)}>
                     <TabsList className="grid w-full grid-cols-2 mb-4">
-                        <TabsTrigger value="email" className="flex items-center gap-2">
-                            <Mail className="h-4 w-4" /> Email
-                        </TabsTrigger>
                         <TabsTrigger value="whatsapp" className="flex items-center gap-2">
                             <MessageSquare className="h-4 w-4" /> WhatsApp
                         </TabsTrigger>
+                        <TabsTrigger value="email" className="flex items-center gap-2">
+                            <Mail className="h-4 w-4" /> Email
+                        </TabsTrigger>
                     </TabsList>
-                    
-                    <TabsContent value="email">
-                        <form onSubmit={handleLogin} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
-                            <div className="relative">
-                            <Input id="password" type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
-                            <Button type="button" variant="ghost" size="icon" className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword(prev => !prev)}>
-                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                <span className="sr-only">Toggle password visibility</span>
-                            </Button>
-                            </div>
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isLoggingIn} style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
-                            {isLoggingIn && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Login with Email
-                        </Button>
-                        </form>
-                    </TabsContent>
 
                     <TabsContent value="whatsapp">
                         {!otpSent ? (
@@ -280,6 +257,29 @@ export default function LoginPage() {
                                 </Button>
                             </form>
                         )}
+                    </TabsContent>
+
+                    <TabsContent value="email">
+                        <form onSubmit={handleLogin} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <div className="relative">
+                            <Input id="password" type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
+                            <Button type="button" variant="ghost" size="icon" className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword(prev => !prev)}>
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                <span className="sr-only">Toggle password visibility</span>
+                            </Button>
+                            </div>
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isLoggingIn} style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
+                            {isLoggingIn && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Login with Email
+                        </Button>
+                        </form>
                     </TabsContent>
                 </Tabs>
             </CardContent>

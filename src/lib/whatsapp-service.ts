@@ -150,7 +150,7 @@ class WhatsAppService {
     async sendTemplateMessage(params: SendTemplateParams): Promise<MessageResponse> {
         const url = `${this.baseUrl}/${this.config.phoneNumberId}/messages`;
 
-        const payload = {
+        const payload: any = {
             messaging_product: 'whatsapp',
             to: params.to,
             type: 'template',
@@ -159,9 +159,12 @@ class WhatsAppService {
                 language: {
                     code: params.language || 'en',
                 },
-                components: params.components || [],
             },
         };
+
+        if (params.components && params.components.length > 0) {
+            payload.template.components = params.components;
+        }
 
         const response = await fetch(url, {
             method: 'POST',
@@ -450,8 +453,6 @@ class WhatsAppService {
 let whatsappServiceInstance: WhatsAppService | null = null;
 
 export async function getWhatsAppServiceWithSettings(): Promise<WhatsAppService> {
-    if (whatsappServiceInstance) return whatsappServiceInstance;
-
     try {
         const { db } = await import('@/lib/firebase-admin');
         if (!db) {

@@ -2,71 +2,88 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase-admin';
 import { getWhatsAppServiceWithSettings } from '@/lib/whatsapp-service';
 
+type UserType = 'customer' | 'partner' | 'vendor' | 'admin';
+
+const COLLECTION_MAP: Record<UserType, string> = {
+    customer: 'customers',
+    partner: 'vendors',
+    vendor: 'vendors',
+    admin: 'admins',
+};
+
 export async function POST(req: NextRequest) {
     try {
-        const { phoneNumber } = await req.json();
+        const { phoneNumber, userType = 'customer' } = await req.json();
 
         if (!phoneNumber) {
             return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
         }
 
-        // Normalize phone number (REMOVE ALL NON-DIGITS for WhatsApp API)
+        const collection = COLLECTION_MAP[userType as UserType];
+        if (!collection) {
+            return NextResponse.json({ error: 'Invalid user type' }, { status: 400 });
+        }
+
+        // Normalize phone number (remove all non-digits)
         const normalizedPhone = phoneNumber.replace(/\D/g, '');
 
         if (!normalizedPhone) {
             return NextResponse.json({ error: 'Valid phone number is required' }, { status: 400 });
         }
 
-        // 1. Check if user exists in Firestore customers collection
-        const customersRef = db!.collection('customers');
+        // Check if user exists — try multiple number formats for flexibility
+        const collectionRef = db!.collection(collection);
         const last10Digits = normalizedPhone.slice(-10);
-        
-        // We try multiple common formats to be as flexible as possible
+
         const formatsToTry = [
-            normalizedPhone,           // e.g. 919876543210
-            `+${normalizedPhone}`,      // e.g. +919876543210
-            last10Digits,               // e.g. 9876543210 (local format)
-            `+${last10Digits}`          // e.g. +9876543210
+            normalizedPhone,
+            `+${normalizedPhone}`,
+            last10Digits,
+            `+${last10Digits}`,
         ];
 
         let snapshot = { empty: true } as any;
         for (const format of formatsToTry) {
             if (!format) continue;
-            snapshot = await customersRef.where('mobile', '==', format).get();
+            snapshot = await collectionRef.where('mobile', '==', format).get();
             if (!snapshot.empty) break;
         }
 
         if (snapshot.empty) {
-            return NextResponse.json({ 
-                error: 'This mobile number is not registered. Please use your registered mobile number.' 
+            return NextResponse.json({
+                error: 'This mobile number is not registered. Please use your registered mobile number.'
             }, { status: 404 });
         }
 
-        const customerDoc = snapshot.docs[0];
-        const customerData = customerDoc.data();
+        const userDoc = snapshot.docs[0];
+        const userData = userDoc.data();
 
-        // 2. Prepare WhatsApp service
+        // Prepare WhatsApp service
         const whatsapp = await getWhatsAppServiceWithSettings();
 
-        // 3. Generate OTP
+        // Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        // 4. Store OTP
+        // Store OTP
         await db!.collection('login_otps').doc(normalizedPhone).set({
             otp,
             expiresAt,
-            userId: customerDoc.id,
-            email: customerData.email
+            userId: userDoc.id,
+            email: userData.email,
+            userType,
         });
 
-        // 5. Send OTP via WhatsApp
-        // Using the 'client_login_code' template which should have one body parameter for the code
+        // Send OTP via WhatsApp
+        let otpSent = false;
+        let lastError: any = null;
+
+        // Attempt 1: Template with body + button components
         try {
             await whatsapp.sendTemplateMessage({
                 to: normalizedPhone,
                 templateName: 'client_login_code_2',
-                language: 'en_US',
+                language: 'en',
                 components: [
                     {
                         type: 'body',
@@ -74,23 +91,40 @@ export async function POST(req: NextRequest) {
                             { type: 'text', text: otp }
                         ]
                     },
-                    // If the template has a button with otp_type, we might need to add it here
-                    // But usually for authentication templates, Meta handles the button automatically
-                    // if it was created as an AUTHENTICATION template.
                     {
-                      type: 'button',
-                      sub_type: 'url',
-                      index: '0',
-                      parameters: [
-                        { type: 'text', text: otp }
-                      ]
+                        type: 'button',
+                        sub_type: 'url',
+                        index: '0',
+                        parameters: [
+                            { type: 'text', text: otp }
+                        ]
                     }
                 ]
             });
-        } catch (sendError: any) {
-             console.error('WhatsApp Send Error:', sendError);
-             return NextResponse.json({ 
-                error: 'Failed to send WhatsApp verification code. Please check your number or try again later.' 
+            otpSent = true;
+        } catch (templateError: any) {
+            lastError = templateError;
+            console.error('WhatsApp template send failed, trying text fallback:', templateError.message);
+        }
+
+        // Attempt 2: Plain text fallback (works within 24-hour customer service window)
+        if (!otpSent) {
+            try {
+                await whatsapp.sendTextMessage(
+                    normalizedPhone,
+                    `Your DietClinik login verification code is: *${otp}*\n\nThis code is valid for 10 minutes. Do not share this code with anyone.`
+                );
+                otpSent = true;
+            } catch (textError: any) {
+                lastError = textError;
+                console.error('WhatsApp text fallback also failed:', textError.message);
+            }
+        }
+
+        if (!otpSent) {
+            console.error('All WhatsApp send attempts failed. Last error:', lastError);
+            return NextResponse.json({
+                error: `Failed to send WhatsApp verification code. ${lastError?.message || 'Unknown error'}`
             }, { status: 500 });
         }
 

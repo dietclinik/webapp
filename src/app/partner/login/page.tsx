@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/logo";
 import { useState } from "react";
-import { signInWithEmailAndPassword, updateCurrentUser } from "firebase/auth";
-import { doc, getDoc, Timestamp } from "firebase/firestore";
+import { signInWithEmailAndPassword, signInWithCustomToken } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from "@/components/firebase-provider";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, MessageSquare, Mail, Phone } from "lucide-react";
 import Link from "next/link";
-import { togglePartnerStatus } from "@/ai/flows/toggle-partner-status-flow";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const policyLinks = [
     { href: "/terms-and-conditions", label: "Terms & Conditions" },
@@ -30,6 +31,15 @@ export default function PartnerLoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const [countryCode, setCountryCode] = useState("91");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+
   const router = useRouter();
   const { toast } = useToast();
   const { auth, db } = useFirebase();
@@ -40,29 +50,20 @@ export default function PartnerLoginPage() {
         toast({ variant: 'destructive', title: "Error", description: "Authentication service is not available." });
         return;
     }
-    
     setIsLoggingIn(true);
-
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        
         const vendorDocRef = doc(db, 'vendors', userCredential.user.uid);
         const vendorDocSnap = await getDoc(vendorDocRef);
-
         if (vendorDocSnap.exists()) {
             router.push('/partner/dashboard');
         } else {
             await auth.signOut();
-            toast({
-                variant: "destructive",
-                title: "Access Denied",
-                description: "You are not an authorized partner.",
-            });
+            toast({ variant: "destructive", title: "Access Denied", description: "You are not an authorized partner." });
         }
     } catch(error: any) {
         const errorCode = error.code;
         let errorMessage = error.message;
-
         if (errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password' || errorCode === 'auth/invalid-credential') {
           errorMessage = "Invalid email or password. Please try again.";
         }
@@ -70,7 +71,66 @@ export default function PartnerLoginPage() {
     } finally {
         setIsLoggingIn(false);
     }
-  }
+  };
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mobileNumber) {
+        toast({ variant: 'destructive', title: "Error", description: "Mobile number is required." });
+        return;
+    }
+    const fullNumber = `${countryCode}${mobileNumber.replace(/\D/g, '')}`;
+    setPhoneNumber(fullNumber);
+    setIsSendingOtp(true);
+    try {
+        const res = await fetch('/api/auth/whatsapp/send-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phoneNumber: fullNumber, userType: 'partner' })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
+        setOtpSent(true);
+        toast({ title: "OTP Sent", description: "Verification code has been sent to your WhatsApp number." });
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: "Error", description: error.message });
+    } finally {
+        setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp) {
+        toast({ variant: 'destructive', title: "Error", description: "OTP is required." });
+        return;
+    }
+    setIsVerifyingOtp(true);
+    try {
+        const res = await fetch('/api/auth/whatsapp/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phoneNumber, otp })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Verification failed');
+        if (!auth || !db) throw new Error("Authentication service is not available.");
+
+        const userCredential = await signInWithCustomToken(auth, data.token);
+        const vendorDocRef = doc(db, 'vendors', userCredential.user.uid);
+        const vendorDocSnap = await getDoc(vendorDocRef);
+        if (vendorDocSnap.exists()) {
+            router.push('/partner/dashboard');
+        } else {
+            await auth.signOut();
+            toast({ variant: "destructive", title: "Access Denied", description: "You are not an authorized partner." });
+        }
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: "Verification Failed", description: error.message });
+    } finally {
+        setIsVerifyingOtp(false);
+    }
+  };
 
   return (
      <div className="flex flex-col min-h-screen bg-background">
@@ -80,31 +140,99 @@ export default function PartnerLoginPage() {
             <Card className="w-[400px]">
             <CardHeader className="text-center">
                 <CardTitle>Partner Login</CardTitle>
-                <CardDescription>
-                Access the partner portal.
-                </CardDescription>
+                <CardDescription>Access the partner portal.</CardDescription>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <div className="space-y-2">
-                    <Label htmlFor="partner-email">Email</Label>
-                    <Input id="partner-email" type="email" placeholder="owner@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor="partner-password">Password</Label>
-                    <div className="relative">
-                    <Input id="partner-password" type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
-                    <Button type="button" variant="ghost" size="icon" className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword(prev => !prev)}>
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        <span className="sr-only">Toggle password visibility</span>
-                    </Button>
-                    </div>
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoggingIn}>
-                        {isLoggingIn && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Login
-                    </Button>
-                </form>
+                <Tabs defaultValue="whatsapp">
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                        <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4" /> WhatsApp
+                        </TabsTrigger>
+                        <TabsTrigger value="email" className="flex items-center gap-2">
+                            <Mail className="h-4 w-4" /> Email
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="whatsapp">
+                        {!otpSent ? (
+                            <form onSubmit={handleSendOtp} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Mobile Number</Label>
+                                    <div className="flex gap-2">
+                                        <div className="w-[100px]">
+                                            <Select value={countryCode} onValueChange={setCountryCode}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Code" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="91">+91 (IN)</SelectItem>
+                                                    <SelectItem value="1">+1 (US/CA)</SelectItem>
+                                                    <SelectItem value="44">+44 (UK)</SelectItem>
+                                                    <SelectItem value="971">+971 (UAE)</SelectItem>
+                                                    <SelectItem value="61">+61 (AU)</SelectItem>
+                                                    <SelectItem value="65">+65 (SG)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="flex-1 relative">
+                                            <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder="9876543210"
+                                                required
+                                                value={mobileNumber}
+                                                onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, ''))}
+                                                className="pl-9"
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground">Select your country code and enter your registered mobile number.</p>
+                                </div>
+                                <Button type="submit" className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white" disabled={isSendingOtp}>
+                                    {isSendingOtp && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Send Verification Code
+                                </Button>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleVerifyOtp} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Verification Code</Label>
+                                    <Input placeholder="Enter 6-digit code" required value={otp} onChange={(e) => setOtp(e.target.value)} maxLength={6} />
+                                    <div className="flex justify-between items-center mt-1">
+                                        <p className="text-[10px] text-muted-foreground">Code sent to {phoneNumber}</p>
+                                        <button type="button" onClick={() => setOtpSent(false)} className="text-[10px] text-primary underline">Change Number</button>
+                                    </div>
+                                </div>
+                                <Button type="submit" className="w-full" disabled={isVerifyingOtp}>
+                                    {isVerifyingOtp && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Verify & Login
+                                </Button>
+                            </form>
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="email">
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="partner-email">Email</Label>
+                                <Input id="partner-email" type="email" placeholder="owner@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="partner-password">Password</Label>
+                                <div className="relative">
+                                    <Input id="partner-password" type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
+                                    <Button type="button" variant="ghost" size="icon" className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowPassword(prev => !prev)}>
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        <span className="sr-only">Toggle password visibility</span>
+                                    </Button>
+                                </div>
+                            </div>
+                            <Button type="submit" className="w-full" disabled={isLoggingIn}>
+                                {isLoggingIn && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Login with Email
+                            </Button>
+                        </form>
+                    </TabsContent>
+                </Tabs>
             </CardContent>
             </Card>
         </div>
@@ -123,7 +251,7 @@ export default function PartnerLoginPage() {
         <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
             <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Diet Clinik. All rights reserved.</p>
             <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-            <p className="text-sm text-muted-foreground">App Developed By <a href="https://catchytechnologies.com" target="_blank" rel="noopener noreferrer" className="text-primary no-underline">Catchy Technologies</a></p>
+                <p className="text-sm text-muted-foreground">App Developed By <a href="https://catchytechnologies.com" target="_blank" rel="noopener noreferrer" className="text-primary no-underline">Catchy Technologies</a></p>
             </nav>
         </footer>
     </div>

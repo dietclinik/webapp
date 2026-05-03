@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { admin, db } from '@/lib/firebase-admin';
 import { WebhookPayload } from '@/lib/whatsapp-service';
 
 // Webhook verification (GET request from Meta)
@@ -10,18 +10,17 @@ export async function GET(req: Request) {
     const challenge = searchParams.get('hub.challenge');
 
     try {
-        const { db } = await import('@/components/firebase-provider');
+        if (!db) throw new Error("Database not initialized");
 
         // Get verify token from settings
-        const settingsRef = doc(db, 'whatsappSettings', 'global');
-        const settingsDoc = await getDoc(settingsRef);
+        const settingsDoc = await db.collection('whatsappSettings').doc('global').get();
 
-        if (!settingsDoc.exists()) {
+        if (!settingsDoc.exists) {
             return NextResponse.json({ error: 'Not configured' }, { status: 403 });
         }
 
         const settings = settingsDoc.data();
-        const verifyToken = settings.webhookVerifyToken || process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
+        const verifyToken = settings?.webhookVerifyToken || process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
 
         if (mode === 'subscribe' && token === verifyToken) {
             console.log('Webhook verified');
@@ -39,7 +38,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
     try {
         const body: WebhookPayload = await req.json();
-        const { db } = await import('@/components/firebase-provider');
+
+        if (!db) throw new Error("Database not initialized");
 
         // Process webhook payload
         if (body.object === 'whatsapp_business_account') {
@@ -51,17 +51,17 @@ export async function POST(req: Request) {
                             const contact = change.value.contacts?.[0];
 
                             // Save to inbox
-                            await addDoc(collection(db, 'whatsappInbox'), {
+                            await db.collection('whatsappInbox').add({
                                 messageId: message.id,
                                 fromPhone: message.from,
                                 fromName: contact?.profile?.name || 'Unknown',
                                 messageType: message.type,
                                 messageContent: message.text?.body || '',
                                 mediaUrl: message.image?.id || message.document?.id || message.video?.id || message.audio?.id || null,
-                                timestamp: new Date(parseInt(message.timestamp) * 1000),
+                                timestamp: admin.firestore.Timestamp.fromMillis(parseInt(message.timestamp) * 1000),
                                 isRead: false,
                                 replied: false,
-                                createdAt: serverTimestamp(),
+                                createdAt: admin.firestore.FieldValue.serverTimestamp(),
                             });
                         }
                     }
