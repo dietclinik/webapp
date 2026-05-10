@@ -49,7 +49,7 @@ export default function LoginPage() {
     if (!db) return { valid: true };
 
     const customerDocRef = doc(db, "customers", user.uid);
-    
+
     try {
         const customerDocSnap = await getDoc(customerDocRef);
         if (!customerDocSnap.exists()) {
@@ -57,13 +57,37 @@ export default function LoginPage() {
         }
 
         const customerData = customerDocSnap.data();
-        
-        // Priority 1: Check if the account is explicitly marked as Inactive.
+
         if (customerData.status === 'Inactive') {
-            return { valid: false, reason: "Your Account is Inactive, Contact your Admin.." };
+            return { valid: false, reason: "Your account is inactive. Please contact your admin." };
         }
 
-        // If not explicitly Inactive, the user can log in (even if expired, to allow renewal).
+        // If this customer belongs to a partner, check whether that partner's subscription is still valid.
+        if (customerData.vendorId) {
+            try {
+                const vendorDocSnap = await getDoc(doc(db, "vendors", customerData.vendorId));
+                if (vendorDocSnap.exists()) {
+                    const vendorData = vendorDocSnap.data();
+                    if (vendorData.status === 'Inactive') {
+                        return {
+                            valid: false,
+                            reason: "Your partner's account is currently inactive. Please contact your partner to reactivate.",
+                        };
+                    }
+                    const endDate: Timestamp | undefined = vendorData.subscriptionEndDate;
+                    if (endDate && endDate.toDate() < new Date()) {
+                        return {
+                            valid: false,
+                            reason: "Your partner's subscription has expired. Login will be restored once your partner renews their plan.",
+                        };
+                    }
+                }
+            } catch {
+                // Vendor doc unreadable — don't block the customer, just log.
+                console.warn("Could not verify partner subscription for customer:", user.uid);
+            }
+        }
+
         return { valid: true };
 
     } catch (error) {
