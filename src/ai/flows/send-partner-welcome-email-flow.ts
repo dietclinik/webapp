@@ -102,11 +102,27 @@ const newPartnerFlow = ai.defineFlow(
                 endDate = addDays(endDate, resolvedDays);
 
                 if (userRecord) {
-                    // Existing partner is renewing/upgrading
                     userId = userRecord.uid;
-                    console.log(`Partner user ${email} already exists. Updating their record.`);
+                    // Check if this user already has a vendor document (genuine renewal/upgrade)
+                    // vs. an existing Firebase Auth user being assigned the vendor role for the first time
+                    const existingVendorDoc = await db.collection("vendors").doc(userId).get();
+                    if (!existingVendorDoc.exists) {
+                        // First time as a partner — reset their password and send welcome email
+                        const password = generatePassword();
+                        await admin.auth().updateUser(userId, { password, displayName: name, disabled: false });
+                        await sendTransactionalEmail({
+                            template: 'partnerWelcome',
+                            name,
+                            email,
+                            password
+                        });
+                        if (mobile) {
+                            sendWelcomePartner({ phone: mobile, name, userId }).catch(console.error);
+                        }
+                    }
+                    // If vendor doc already exists it's a renewal — don't overwrite credentials
                 } else {
-                    // This is a new partner
+                    // Brand new Firebase Auth user
                     const collectionsToCheck = ['vendors', 'customers', 'staff'];
                     for (const collectionName of collectionsToCheck) {
                         const mobileQuery = db.collection(collectionName).where('mobile', '==', mobile);
@@ -132,7 +148,6 @@ const newPartnerFlow = ai.defineFlow(
                         password
                     });
 
-                    // Send WhatsApp Welcome
                     if (mobile) {
                         sendWelcomePartner({
                             phone: mobile,
