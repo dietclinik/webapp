@@ -101,24 +101,17 @@ const newPartnerFlow = ai.defineFlow(
                 let endDate = addMonths(startDate, resolvedMonths);
                 endDate = addDays(endDate, resolvedDays);
 
+                let welcomePassword: string | null = null;
+
                 if (userRecord) {
                     userId = userRecord.uid;
                     // Check if this user already has a vendor document (genuine renewal/upgrade)
                     // vs. an existing Firebase Auth user being assigned the vendor role for the first time
                     const existingVendorDoc = await db.collection("vendors").doc(userId).get();
                     if (!existingVendorDoc.exists) {
-                        // First time as a partner — reset their password and send welcome email
-                        const password = generatePassword();
-                        await admin.auth().updateUser(userId, { password, displayName: name, disabled: false });
-                        await sendTransactionalEmail({
-                            template: 'partnerWelcome',
-                            name,
-                            email,
-                            password
-                        });
-                        if (mobile) {
-                            sendWelcomePartner({ phone: mobile, name, userId }).catch(console.error);
-                        }
+                        // First time as a partner — reset their password (email sent after vendor doc is saved)
+                        welcomePassword = generatePassword();
+                        await admin.auth().updateUser(userId, { password: welcomePassword, displayName: name, disabled: false });
                     }
                     // If vendor doc already exists it's a renewal — don't overwrite credentials
                 } else {
@@ -132,31 +125,19 @@ const newPartnerFlow = ai.defineFlow(
                         }
                     }
 
-                    const password = generatePassword();
+                    welcomePassword = generatePassword();
                     userRecord = await admin.auth().createUser({
                         email: email,
                         emailVerified: false,
-                        password: password,
+                        password: welcomePassword,
                         displayName: name,
                         disabled: false,
                     });
                     userId = userRecord.uid;
-                    await sendTransactionalEmail({
-                        template: 'partnerWelcome',
-                        name,
-                        email,
-                        password
-                    });
-
-                    if (mobile) {
-                        sendWelcomePartner({
-                            phone: mobile,
-                            name,
-                            userId
-                        }).catch(console.error);
-                    }
                 }
 
+                // Save vendor document FIRST — partner must exist in Firestore before welcome email is sent
+                // so they can log in immediately after receiving the email
                 const vendorDocRef = db.collection("vendors").doc(userId);
                 const dataToSave: Record<string, any> = {
                     name, email, mobile, planId, ...otherData,
@@ -175,6 +156,19 @@ const newPartnerFlow = ai.defineFlow(
                 if (temporaryId && temporaryId !== userId) {
                     const tempVendorRef = db.collection("vendors").doc(temporaryId);
                     await tempVendorRef.delete();
+                }
+
+                // Send welcome email AFTER vendor doc is confirmed saved
+                if (welcomePassword) {
+                    await sendTransactionalEmail({
+                        template: 'partnerWelcome',
+                        name,
+                        email,
+                        password: welcomePassword
+                    });
+                    if (mobile) {
+                        sendWelcomePartner({ phone: mobile, name, userId }).catch(console.error);
+                    }
                 }
 
                 return { userId, message: "Partner created and welcome email sent." };
