@@ -26,6 +26,8 @@ const ProcessPartnerInputSchema = z.object({
         planId: z.string(),
         durationMonths: z.number().optional(),
         durationDays: z.number().optional(),
+        planVariantLabel: z.string().optional(),
+        planPrice: z.number().optional(),
     }),
 });
 
@@ -56,7 +58,7 @@ const newPartnerFlow = ai.defineFlow(
             throw new Error("Firebase Admin SDK not initialized.");
         }
 
-        const { name, email, mobile, planId, durationMonths, durationDays, ...otherData } = vendorData;
+        const { name, email, mobile, planId, durationMonths, durationDays, planVariantLabel, planPrice, ...otherData } = vendorData;
 
         await createNotification({
             userId: 'admin',
@@ -92,8 +94,12 @@ const newPartnerFlow = ai.defineFlow(
                 }
                 const plan = planDoc.data() || {};
                 const startDate = new Date();
-                let endDate = addMonths(startDate, durationMonths || plan.durationMonths || 0);
-                endDate = addDays(endDate, durationDays || plan.durationDays || 0);
+                // Resolve duration: prefer explicitly passed values, then plan top-level, then first priceVariant
+                const firstVariant = plan.priceVariants?.[0];
+                const resolvedMonths = durationMonths ?? plan.durationMonths ?? firstVariant?.durationMonths ?? 0;
+                const resolvedDays = durationDays ?? plan.durationDays ?? firstVariant?.durationDays ?? 0;
+                let endDate = addMonths(startDate, resolvedMonths);
+                endDate = addDays(endDate, resolvedDays);
 
                 if (userRecord) {
                     // Existing partner is renewing/upgrading
@@ -137,8 +143,9 @@ const newPartnerFlow = ai.defineFlow(
                 }
 
                 const vendorDocRef = db.collection("vendors").doc(userId);
-                const dataToSave = {
+                const dataToSave: Record<string, any> = {
                     name, email, mobile, planId, ...otherData,
+                    planName,
                     status: 'Active',
                     paymentStatus: 'Paid',
                     tier: planTier,
@@ -146,6 +153,8 @@ const newPartnerFlow = ai.defineFlow(
                     subscriptionStartDate: Timestamp.fromDate(startDate),
                     subscriptionEndDate: Timestamp.fromDate(endDate),
                 };
+                if (planVariantLabel) dataToSave.planVariantLabel = planVariantLabel;
+                if (planPrice !== undefined) dataToSave.planPrice = planPrice;
                 await vendorDocRef.set(dataToSave, { merge: true });
 
                 if (temporaryId && temporaryId !== userId) {
