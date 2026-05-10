@@ -20,10 +20,10 @@ import {
   Camera,
 } from "lucide-react";
 import { format, addMonths, addDays } from "date-fns";
-import { collection, doc, getDoc, getDocs, query, where, Timestamp, writeBatch } from "firebase/firestore";
+import { collection, doc, getDoc, Timestamp, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from "@/components/firebase-provider";
-import { processNewCustomer } from "@/app/actions";
+import { processNewCustomer, checkCustomerExists } from "@/app/actions";
 import type { ProcessCustomerInput } from "@/ai/flows/send-welcome-email-flow";
 import { calculateMacros, type MacrosOutput } from "@/ai/flows/calculate-macros-flow";
 import { calculateBodyFat } from "@/ai/flows/calculate-body-fat-flow";
@@ -481,28 +481,6 @@ export default function RegisterPage() {
     },
   ], [customFields]);
 
-  const findExistingCustomer = async (email: string, mobile: string) => {
-    if(!db) return false;
-    
-    const customersRef = collection(db, "customers");
-    
-    // Check for email
-    const emailQuery = query(customersRef, where("email", "==", email));
-    const emailSnapshot = await getDocs(emailQuery);
-    if (!emailSnapshot.empty) {
-        return true;
-    }
-
-    // Check for mobile
-    const mobileQuery = query(customersRef, where("mobile", "==", mobile));
-    const mobileSnapshot = await getDocs(mobileQuery);
-    if (!mobileSnapshot.empty) {
-        return true;
-    }
-    
-    return false;
-  }
-
   const handleNext = async () => {
     const fieldsToValidate = steps[currentStep].fields as (keyof z.infer<typeof formSchema>)[];
     const isValid = await form.trigger(fieldsToValidate);
@@ -510,16 +488,21 @@ export default function RegisterPage() {
     if (isValid) {
       if (currentStep === 0) {
         setIsLookingUp(true);
-        const { email, mobile } = form.getValues();
-        const customerExists = await findExistingCustomer(email, mobile);
-        setIsLookingUp(false);
-        if (customerExists) {
+        try {
+          const { email, mobile } = form.getValues();
+          const customerExists = await checkCustomerExists(email, mobile);
+          if (customerExists) {
             toast({
-                variant: 'destructive',
-                title: 'Existing User',
-                description: "The Mail ID or Mobile number you entered is already exist"
+              variant: 'destructive',
+              title: 'Existing User',
+              description: "The Mail ID or Mobile number you entered already exists."
             });
             return;
+          }
+        } catch (err) {
+          console.error("Duplicate check failed:", err);
+        } finally {
+          setIsLookingUp(false);
         }
       }
       setCurrentStep((prev) => prev + 1);
