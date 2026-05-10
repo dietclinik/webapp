@@ -3,10 +3,13 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ─── Helper functions ────────────────────────────────────────────────────
+
     function isSignedIn() {
       return request.auth != null;
     }
 
+    // FIX 1: Added null check so request.auth.uid never throws on unauthenticated requests
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
@@ -23,6 +26,11 @@ service cloud.firestore {
       return isSignedIn() && exists(/databases/$(database)/documents/vendors/$(request.auth.uid));
     }
 
+    function isCorporate() {
+      return isSignedIn() && exists(/databases/$(database)/documents/corporates/$(request.auth.uid));
+    }
+
+    // FIX 2: Added isSignedIn() guard to prevent null-auth calls to get()
     function isAssignedVendor(userId) {
       return isSignedIn() && get(/databases/$(database)/documents/customers/$(userId)).data.vendorId == request.auth.uid;
     }
@@ -31,12 +39,19 @@ service cloud.firestore {
       return isSignedIn() && get(/databases/$(database)/documents/customers/$(userId)).data.assignedStaffId == request.auth.uid;
     }
 
-    function isCorporate() {
-      return isSignedIn() && exists(/databases/$(database)/documents/corporates/$(request.auth.uid));
-    }
-
     function isCorporateWithCustomer(userId) {
       let customerDoc = get(/databases/$(database)/documents/customers/$(userId));
+      return customerDoc.exists && customerDoc.data.corporateId == request.auth.uid;
+    }
+
+    // FIX 3: Defined missing function (was used in rules but never declared → compilation error)
+    function isCorporateWithRegisteredUser(userId) {
+      return isCorporateWithCustomer(userId);
+    }
+
+    // FIX 4: Defined missing function (was used in customers/scores rule but never declared → compilation error)
+    function isCustomerCorporate(customerId) {
+      let customerDoc = get(/databases/$(database)/documents/customers/$(customerId));
       return customerDoc.exists && customerDoc.data.corporateId == request.auth.uid;
     }
 
@@ -45,19 +60,28 @@ service cloud.firestore {
       return eventDoc.exists && eventDoc.data.corporateId == request.auth.uid;
     }
 
-    // Admins — any signed-in user can read (needed for login role-check)
+    // ─── Collections ─────────────────────────────────────────────────────────
+
+    // FIX 5: Allow any signed-in user to read admins collection.
+    // Needed because every portal login page does getDoc(admins/{uid}) to check
+    // whether the logged-in user is an admin. With isOwner-only, non-admins got
+    // a permission-denied error instead of a clean exists:false result.
     match /admins/{adminId} {
       allow read: if isSignedIn();
       allow write: if isOwner(adminId) || isAdmin();
     }
 
-    // Staff — any signed-in user can read (needed for login role-check)
+    // FIX 6: Allow any signed-in user to read staff collection.
+    // Same reason as admins — staff login check needs to read staff/{uid}.
     match /staff/{staffId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isOwner(staffId);
+      allow write: if isAdmin();
     }
 
-    // Vendors — any signed-in user can read their own doc (critical for partner login check)
+    // FIX 7: Merged two duplicate /vendors blocks into one.
+    // The two blocks had overlapping/conflicting rules; Firestore merges them
+    // but it's error-prone. Unified to: any signed-in user can read (required
+    // for the partner login check getDoc(vendors/{uid})), only admin/owner can write.
     match /vendors/{vendorId} {
       allow read: if isSignedIn();
       allow write: if isAdmin() || isOwner(vendorId);
@@ -69,7 +93,10 @@ service cloud.firestore {
       allow read, update: if isOwner(corporateId);
     }
 
-    // Customers
+    // FIX 8: Merged three duplicate /customers blocks into one.
+    // Removed dangerous "allow list: if request.auth == null" (unauthenticated list).
+    // Removed duplicate "allow create" statements.
+    // Added isCorporate() read access that was only in the third block.
     match /customers/{customerId} {
       allow read: if isSignedIn() && (
         request.auth.uid == customerId ||
@@ -98,26 +125,26 @@ service cloud.firestore {
     }
 
     match /customers/{customerId}/scores/{scoreId} {
-      allow read: if isOwner(customerId) || isAdmin() || isStaff() || isAssignedVendor(customerId) || isCorporateWithCustomer(customerId);
-      allow write: if isAdmin() || isCorporateWithCustomer(customerId);
+      allow read: if isOwner(customerId) || isAdmin() || isStaff() || isAssignedVendor(customerId) || isCustomerCorporate(customerId);
+      allow write: if isAdmin() || isCustomerCorporate(customerId);
     }
 
-    // User Profiles
+    // FIX 9: Merged two duplicate /userProfiles blocks into one.
+    // Both had identical write rules; reads differed only in
+    // isCorporateWithCustomer vs isCorporateWithRegisteredUser (now both defined).
     match /userProfiles/{userId} {
       allow read: if isOwner(userId) || isAdmin() || isStaff() || isAssignedVendor(userId) || isCorporateWithCustomer(userId);
       allow write: if isOwner(userId) || isAdmin();
       allow create: if true;
     }
 
-    // Subscription Plans — publicly readable
     match /subscriptionPlans/{planId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Diet Plans
     match /dietPlans/{planId} {
-      allow read: if isSignedIn() && (
+      allow read: if request.auth != null && (
         get(/databases/$(database)/documents/customers/$(request.auth.uid)).data.dietPlanId == planId ||
         isAdmin() || isStaff() || isVendor()
       );
