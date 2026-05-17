@@ -735,21 +735,19 @@ export default function RegisterPage() {
                                         name="activityLevel"
                                         render={({ field }) => (
                                             <FormItem className="space-y-3 pt-4">
-                                            <FormLabel>Daily Calorie Needs *</FormLabel>
+                                            <FormLabel>Activity Level *</FormLabel>
                                             <FormControl>
                                                 <RadioGroup
                                                 onValueChange={field.onChange}
                                                 defaultValue={field.value}
-                                                className="flex flex-col space-y-1"
+                                                className="flex flex-col space-y-2"
                                                 >
                                                 {activityLevels.map(level => (
                                                     <FormItem key={level.id} className="flex items-center space-x-3 space-y-0">
                                                         <FormControl>
                                                             <RadioGroupItem value={String(parseFloat(bmrResult.value) * level.multiplier)} />
                                                         </FormControl>
-                                                        <FormLabel className="font-normal">
-                                                           {level.label}: <span className="font-semibold text-primary">{(parseFloat(bmrResult.value) * level.multiplier).toFixed(0)} kcal</span>
-                                                        </FormLabel>
+                                                        <FormLabel className="font-normal">{level.label}</FormLabel>
                                                     </FormItem>
                                                 ))}
                                                 </RadioGroup>
@@ -788,6 +786,18 @@ export default function RegisterPage() {
                                         </CardContent>
                                     </Card>
                                  )}
+                                {watchedActivityLevel && parseFloat(watchedActivityLevel) > 0 && (
+                                    <Card className="bg-green-50 dark:bg-green-900/20">
+                                        <CardHeader>
+                                            <CardTitle>Daily Calorie Needs</CardTitle>
+                                            <CardDescription>Based on selected activity level</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="text-center">
+                                            <p className="text-5xl font-bold">{parseFloat(watchedActivityLevel).toFixed(0)}</p>
+                                            <p className="text-lg font-semibold mt-2 text-muted-foreground">kcal / day</p>
+                                        </CardContent>
+                                    </Card>
+                                )}
                                 <Card className="bg-amber-50 dark:bg-amber-900/20 relative">
                                     <CardHeader><CardTitle>Daily Macronutrient Needs</CardTitle></CardHeader>
                                     <CardContent className="space-y-3">
