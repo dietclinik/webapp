@@ -67,12 +67,13 @@ export default function EnquiriesPage() {
                 <CardDescription>A log of all health calculations you've performed for potential customers.</CardDescription>
             </CardHeader>
             <CardContent>
+                <div className="overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>
                             <TableHead>Customer</TableHead>
-                            <TableHead>Contact</TableHead>
-                            <TableHead>Health Snapshot</TableHead>
+                            <TableHead className="hidden sm:table-cell">Contact</TableHead>
+                            <TableHead className="hidden md:table-cell">Health Snapshot</TableHead>
                             <TableHead>Date</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -86,18 +87,24 @@ export default function EnquiriesPage() {
                         ) : enquiries.length > 0 ? (
                             enquiries.map((enquiry) => (
                                 <TableRow key={enquiry.id}>
-                                    <TableCell className="font-medium">{enquiry.customerName}</TableCell>
-                                    <TableCell>
+                                    <TableCell className="font-medium">
+                                        {enquiry.customerName}
+                                        <div className="text-xs text-muted-foreground sm:hidden">{enquiry.customerMobile}</div>
+                                        <div className="flex flex-wrap gap-1 mt-1 md:hidden">
+                                            <Badge variant="secondary" className="text-xs">BMI: {enquiry.calculatedBmi}</Badge>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="hidden sm:table-cell">
                                         <div>{enquiry.customerEmail}</div>
                                         <div className="text-xs text-muted-foreground">{enquiry.customerMobile}</div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="hidden md:table-cell">
                                         <div className="flex flex-wrap gap-2">
                                             <Badge variant="secondary">BMI: {enquiry.calculatedBmi}</Badge>
                                             <Badge variant="secondary">Calories: {enquiry.calculatedCalories?.toFixed(0)}</Badge>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{format(enquiry.createdAt.toDate(), 'PPP')}</TableCell>
+                                    <TableCell className="whitespace-nowrap">{format(enquiry.createdAt.toDate(), 'PP')}</TableCell>
                                 </TableRow>
                             ))
                         ) : (
@@ -107,6 +114,7 @@ export default function EnquiriesPage() {
                         )}
                     </TableBody>
                 </Table>
+                </div>
             </CardContent>
         </Card>
     );

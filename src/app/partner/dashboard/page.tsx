@@ -118,14 +118,14 @@ export default function PartnerDashboardPage() {
 
             <div className="grid gap-4 md:gap-8 lg:grid-cols-1">
                 <Card>
-                    <CardHeader className="flex flex-row items-center">
-                        <div className="grid gap-2">
+                    <CardHeader className="flex flex-row items-center flex-wrap gap-2">
+                        <div className="grid gap-2 flex-1 min-w-0">
                             <CardTitle>Recently Added Customers</CardTitle>
                             <CardDescription>
                                 The newest customers you've added.
                             </CardDescription>
                         </div>
-                        <Button asChild size="sm" className="ml-auto gap-1">
+                        <Button asChild size="sm" className="gap-1 shrink-0">
                             <Link href="/partner/customers">
                                 View All
                                 <ArrowRight className="h-4 w-4" />
@@ -133,6 +133,7 @@ export default function PartnerDashboardPage() {
                         </Button>
                     </CardHeader>
                     <CardContent>
+                        <div className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -171,6 +172,7 @@ export default function PartnerDashboardPage() {
                                 )}
                             </TableBody>
                         </Table>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

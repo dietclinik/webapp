@@ -129,12 +129,13 @@ export default function PartnerRenewalClientsPage() {
           </div>
         </CardHeader>
         <CardContent>
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Customer</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Plan</TableHead>
+                <TableHead className="hidden sm:table-cell">Contact</TableHead>
+                <TableHead className="hidden sm:table-cell">Plan</TableHead>
                 <TableHead>Expired On</TableHead>
                 <TableHead>Days Expired</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
@@ -155,15 +156,18 @@ export default function PartnerRenewalClientsPage() {
                   const daysAgo = differenceInDays(now, expiredOn);
                   return (
                     <TableRow key={customer.id}>
-                      <TableCell className="font-medium">{customer.name}</TableCell>
-                      <TableCell>
+                      <TableCell className="font-medium">
+                        {customer.name}
+                        <div className="text-xs text-muted-foreground sm:hidden">{customer.mobile}</div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <div className="text-sm">{customer.email}</div>
                         <div className="text-xs text-muted-foreground">{customer.mobile}</div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <Badge variant="outline">{customer.planName}</Badge>
                       </TableCell>
-                      <TableCell>{format(expiredOn, "PPP")}</TableCell>
+                      <TableCell className="whitespace-nowrap">{format(expiredOn, "PP")}</TableCell>
                       <TableCell>
                         <DaysExpiredBadge days={daysAgo} />
                       </TableCell>
@@ -193,6 +197,7 @@ export default function PartnerRenewalClientsPage() {
               )}
             </TableBody>
           </Table>
+          </div>
           {!loading && filtered.length > 0 && (
             <p className="text-xs text-muted-foreground mt-3">
               Showing {filtered.length} of {customers.length} expired customer{customers.length !== 1 ? "s" : ""}.

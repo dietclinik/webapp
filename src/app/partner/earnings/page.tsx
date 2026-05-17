@@ -102,13 +102,14 @@ export default function PartnerEarningsPage() {
                     <CardTitle>Earnings History</CardTitle>
                 </CardHeader>
                 <CardContent>
+                    <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Customer</TableHead>
-                                <TableHead>Plan</TableHead>
-                                <TableHead className="text-right">Amount Earned</TableHead>
+                                <TableHead className="hidden sm:table-cell">Plan</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -117,17 +118,17 @@ export default function PartnerEarningsPage() {
                                     <TableRow key={i}>
                                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                                        <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-28" /></TableCell>
                                         <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
                                     </TableRow>
                                 ))
                             ) : earnings.length > 0 ? (
                                 earnings.map(item => (
                                     <TableRow key={item.id}>
-                                        <TableCell>{format(item.purchaseDate.toDate(), 'PPP')}</TableCell>
+                                        <TableCell className="whitespace-nowrap">{format(item.purchaseDate.toDate(), 'PP')}</TableCell>
                                         <TableCell>{item.customerName}</TableCell>
-                                        <TableCell><Badge variant="outline">{item.planName}</Badge></TableCell>
-                                        <TableCell className="text-right font-medium">₹{item.vendorEarning.toFixed(2)}</TableCell>
+                                        <TableCell className="hidden sm:table-cell"><Badge variant="outline">{item.planName}</Badge></TableCell>
+                                        <TableCell className="text-right font-medium whitespace-nowrap">₹{item.vendorEarning.toFixed(2)}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
@@ -137,6 +138,7 @@ export default function PartnerEarningsPage() {
                             )}
                         </TableBody>
                     </Table>
+                    </div>
                 </CardContent>
             </Card>
         </div>

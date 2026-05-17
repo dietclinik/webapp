@@ -104,7 +104,7 @@ export default function MoneyBackChallengePage() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <CardTitle className="flex items-center gap-2"><Trophy className="h-6 w-6 text-primary"/> Money Back Challenge</CardTitle>
             <CardDescription>Mark daily attendance for your challenge participants.</CardDescription>
@@ -114,7 +114,7 @@ export default function MoneyBackChallengePage() {
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-[240px] justify-start text-left font-normal",
+                  "w-full sm:w-[240px] justify-start text-left font-normal shrink-0",
                   !selectedDate && "text-muted-foreground"
                 )}
               >
@@ -134,12 +134,13 @@ export default function MoneyBackChallengePage() {
         </div>
       </CardHeader>
       <CardContent>
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Participant</TableHead>
-              <TableHead className="text-center">Attendance for {format(selectedDate, 'PPP')}</TableHead>
-              <TableHead className="text-center">Actions</TableHead>
+              <TableHead className="text-center">Attendance — {format(selectedDate, 'PP')}</TableHead>
+              <TableHead className="text-center">Details</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -203,6 +204,7 @@ export default function MoneyBackChallengePage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
   );

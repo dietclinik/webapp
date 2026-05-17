@@ -238,14 +238,14 @@ export default function PartnerDietPlansPage() {
     <>
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between flex-wrap gap-3">
             <div>
                 <CardTitle>My Diet Plan Templates</CardTitle>
                 <CardDescription>
                 Create and manage your reusable diet plans to assign to your assigned customers.
                 </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="shrink-0">
                 <Link href="/partner/diet-plans/builder">
                     <Button size="sm" className="h-8 gap-1">
                         <PlusCircle className="h-3.5 w-3.5" />
@@ -258,12 +258,13 @@ export default function PartnerDietPlansPage() {
         </div>
       </CardHeader>
       <CardContent>
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Plan Name</TableHead>
-              <TableHead>Target</TableHead>
-              <TableHead>Date Created</TableHead>
+              <TableHead className="hidden sm:table-cell">Target</TableHead>
+              <TableHead className="hidden md:table-cell">Date Created</TableHead>
               <TableHead className="text-center">
                 Actions
               </TableHead>
@@ -272,11 +273,14 @@ export default function PartnerDietPlansPage() {
           <TableBody>
             {dietPlans.length > 0 ? dietPlans.map(plan => (
                 <TableRow key={plan.id}>
-                <TableCell className="font-medium">{plan.name}</TableCell>
-                <TableCell>
+                <TableCell className="font-medium">
+                  {plan.name}
+                  <Badge variant="outline" className="ml-2 sm:hidden">{plan.focus}</Badge>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <Badge variant="outline">{plan.focus}</Badge>
                 </TableCell>
-                <TableCell>{plan.created}</TableCell>
+                <TableCell className="hidden md:table-cell whitespace-nowrap">{plan.created}</TableCell>
                 <TableCell>
                   <TooltipProvider>
                     <div className="flex items-center justify-center gap-2">
@@ -342,6 +346,7 @@ export default function PartnerDietPlansPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
 

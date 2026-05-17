@@ -72,21 +72,24 @@ export default function PartnerNotificationsPage() {
         {notifications.length > 0 ? (
           <ul className="space-y-4">
             {notifications.map(notif => (
-              <li key={notif.id} className={`flex items-start gap-4 p-4 rounded-lg border ${!notif.read ? 'bg-primary/5' : 'bg-muted/50'}`}>
-                <Bell className="h-5 w-5 mt-1 text-primary"/>
-                <div className="flex-1 space-y-1">
-                   <p className="font-medium">
+              <li key={notif.id} className={`flex items-start gap-3 p-3 sm:p-4 rounded-lg border ${!notif.read ? 'bg-primary/5' : 'bg-muted/50'}`}>
+                <Bell className="h-5 w-5 mt-1 text-primary shrink-0"/>
+                <div className="flex-1 min-w-0 space-y-1">
+                   <p className="font-medium text-sm sm:text-base">
                      <Link href={notif.link} className="hover:underline">{notif.message}</Link>
                    </p>
-                   <p className="text-sm text-muted-foreground">
+                   <p className="text-xs sm:text-sm text-muted-foreground">
                         {notif.timestamp ? formatDistanceToNow(notif.timestamp.toDate(), { addSuffix: true }) : '...'}
                    </p>
+                   {!notif.read && (
+                       <Button variant="outline" size="sm" className="h-7 text-xs sm:hidden mt-1" onClick={() => markAsRead(notif.id)}>Mark as Read</Button>
+                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-1 shrink-0">
                     {!notif.read && (
-                        <Button variant="outline" size="sm" onClick={() => markAsRead(notif.id)}>Mark as Read</Button>
+                        <Button variant="outline" size="sm" className="hidden sm:flex" onClick={() => markAsRead(notif.id)}>Mark as Read</Button>
                     )}
-                    <Button variant="ghost" size="icon" onClick={() => deleteNotification(notif.id)} className="text-destructive">
+                    <Button variant="ghost" size="icon" onClick={() => deleteNotification(notif.id)} className="text-destructive h-8 w-8">
                         <Trash2 className="h-4 w-4" />
                     </Button>
                 </div>

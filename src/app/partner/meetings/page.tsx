@@ -56,11 +56,12 @@ export default function PartnerMyMeetingsPage() {
                 <CardDescription>A list of all meetings you have been invited to.</CardDescription>
             </CardHeader>
             <CardContent>
+                <div className="overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>
                             <TableHead>Title</TableHead>
-                            <TableHead>Date Created</TableHead>
+                            <TableHead className="hidden sm:table-cell">Date Created</TableHead>
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -70,13 +71,17 @@ export default function PartnerMyMeetingsPage() {
                         ) : meetings.length > 0 ? (
                             meetings.map(meeting => (
                                 <TableRow key={meeting.id}>
-                                    <TableCell className="font-medium">{meeting.title}</TableCell>
-                                    <TableCell>{format(meeting.createdAt.toDate(), 'PPP p')}</TableCell>
+                                    <TableCell className="font-medium">
+                                        {meeting.title}
+                                        <div className="text-xs text-muted-foreground sm:hidden">{format(meeting.createdAt.toDate(), 'PP')}</div>
+                                    </TableCell>
+                                    <TableCell className="hidden sm:table-cell whitespace-nowrap">{format(meeting.createdAt.toDate(), 'PPP p')}</TableCell>
                                     <TableCell>
                                         <Link href={`/partner/meetings/join/${meeting.id}`}>
                                             <Button variant="outline" size="sm">
                                                 <Video className="mr-2 h-4 w-4" />
-                                                Join Meeting
+                                                <span className="hidden sm:inline">Join Meeting</span>
+                                                <span className="sm:hidden">Join</span>
                                             </Button>
                                         </Link>
                                     </TableCell>
@@ -87,6 +92,7 @@ export default function PartnerMyMeetingsPage() {
                         )}
                     </TableBody>
                 </Table>
+                </div>
             </CardContent>
         </Card>
     );

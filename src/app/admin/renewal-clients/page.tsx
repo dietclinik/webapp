@@ -191,6 +191,7 @@ export default function AdminRenewalClientsPage() {
           </div>
         </CardHeader>
         <CardContent>
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -199,17 +200,17 @@ export default function AdminRenewalClientsPage() {
                     Customer <ArrowUpDown className="h-3 w-3" />
                   </button>
                 </TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead>Partner</TableHead>
+                <TableHead className="hidden sm:table-cell">Contact</TableHead>
+                <TableHead className="hidden md:table-cell">Plan</TableHead>
+                <TableHead className="hidden lg:table-cell">Partner</TableHead>
                 <TableHead>
-                  <button className="flex items-center gap-1" onClick={() => toggleSort("subscriptionEndDate")}>
+                  <button className="flex items-center gap-1 whitespace-nowrap" onClick={() => toggleSort("subscriptionEndDate")}>
                     Expired On <ArrowUpDown className="h-3 w-3" />
                   </button>
                 </TableHead>
                 <TableHead>
-                  <button className="flex items-center gap-1" onClick={() => toggleSort("daysExpired")}>
-                    Days Expired <ArrowUpDown className="h-3 w-3" />
+                  <button className="flex items-center gap-1 whitespace-nowrap" onClick={() => toggleSort("daysExpired")}>
+                    Expired <ArrowUpDown className="h-3 w-3" />
                   </button>
                 </TableHead>
                 <TableHead className="text-center">Actions</TableHead>
@@ -230,18 +231,22 @@ export default function AdminRenewalClientsPage() {
                   const daysAgo = differenceInDays(now, expiredOn);
                   return (
                     <TableRow key={customer.id}>
-                      <TableCell className="font-medium">{customer.name}</TableCell>
-                      <TableCell>
+                      <TableCell className="font-medium">
+                        {customer.name}
+                        <div className="text-xs text-muted-foreground sm:hidden">{customer.mobile}</div>
+                        <div className="lg:hidden text-xs text-muted-foreground mt-0.5">{customer.vendorName}</div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <div className="text-sm">{customer.email}</div>
                         <div className="text-xs text-muted-foreground">{customer.mobile}</div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <Badge variant="outline">{customer.planName}</Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <span className="text-sm text-muted-foreground">{customer.vendorName}</span>
                       </TableCell>
-                      <TableCell>{format(expiredOn, "PPP")}</TableCell>
+                      <TableCell className="whitespace-nowrap">{format(expiredOn, "PP")}</TableCell>
                       <TableCell>
                         <DaysExpiredBadge days={daysAgo} />
                       </TableCell>
@@ -273,6 +278,7 @@ export default function AdminRenewalClientsPage() {
               )}
             </TableBody>
           </Table>
+          </div>
           {!loading && filtered.length > 0 && (
             <p className="text-xs text-muted-foreground mt-3">
               Showing {filtered.length} of {customers.length} expired customer{customers.length !== 1 ? "s" : ""}.
