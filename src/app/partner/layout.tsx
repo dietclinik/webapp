@@ -4,7 +4,7 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, Settings, ShieldAlert, Users, CreditCard, Video, IndianRupee, Bell, BookCopy, Trophy, Calculator, FileQuestion } from 'lucide-react';
+import { Home, Settings, ShieldAlert, Users, CreditCard, Video, IndianRupee, Bell, BookCopy, Trophy, Calculator, FileQuestion, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
@@ -261,6 +261,7 @@ function PartnerAuthWrapper({ children }: { children: ReactNode }) {
     const navLinks = [
         { href: "/partner/dashboard", icon: Home, label: "Dashboard" },
         { href: "/partner/customers", icon: Users, label: "My Customers", activePaths: ["/partner/customers/add", "/partner/customers/edit", "/partner/customers/view"] },
+        { href: "/partner/renewal-clients", icon: RotateCcw, label: "Renewal Clients" },
         { href: "/partner/money-back-challenge", icon: Trophy, label: "Money Back Challenge", activePaths: ["/partner/money-back-challenge/view"] },
         { href: "/partner/diet-plans", icon: BookCopy, label: "Diet Plans", activePaths: ["/partner/diet-plans/builder"] },
         { href: "/partner/calculator", icon: Calculator, label: "Calculator" },

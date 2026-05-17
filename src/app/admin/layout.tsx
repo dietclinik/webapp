@@ -5,7 +5,7 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { BookCopy, Home, IndianRupee, Settings, Users, ShoppingCart, Receipt, Bell, ShieldAlert, UserPlus, Dumbbell, Video, ArrowUpRight, Building2, Activity, MailQuestion, Megaphone, MessageSquare, Trophy, UserCircle } from 'lucide-react';
+import { BookCopy, Home, IndianRupee, Settings, Users, ShoppingCart, Receipt, Bell, ShieldAlert, UserPlus, Dumbbell, Video, ArrowUpRight, Building2, Activity, MailQuestion, Megaphone, MessageSquare, Trophy, UserCircle, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
@@ -168,6 +168,7 @@ function AdminAuthWrapper({ children }: { children: ReactNode }) {
     const navLinks = [
         { href: "/admin", icon: Home, label: "Dashboard" },
         { href: "/admin/customers", icon: Users, label: "Customers", activePaths: ["/admin/customers/view", "/admin/customers/edit", "/admin/customers/add"] },
+        { href: "/admin/renewal-clients", icon: RotateCcw, label: "Renewal Clients" },
         { href: "/admin/staff", icon: UserPlus, label: "Staff", activePaths: ["/admin/staff/add", "/admin/staff/edit", "/admin/staff/view"] },
         { href: "/admin/partners", icon: Dumbbell, label: "Partners", activePaths: ["/admin/partners/add", "/admin/partners/edit", "/admin/partners/view"] },
         { href: "/admin/corporates", icon: Building2, label: "Corporates", activePaths: ["/admin/corporates/add", "/admin/corporates/edit", "/admin/corporates/view", "/admin/events"] },
