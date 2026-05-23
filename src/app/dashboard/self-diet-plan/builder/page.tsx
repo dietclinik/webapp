@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,19 +10,27 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from "@/components/firebase-provider";
 import { doc, getDoc, setDoc, addDoc, serverTimestamp, Timestamp, collection } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { ChevronLeft, PlusCircle, Trash2, Loader2, Save, BrainCircuit, Copy, CalendarIcon, Edit } from "lucide-react";
+import { ChevronLeft, PlusCircle, Trash2, Loader2, Save, BrainCircuit, CalendarIcon, Pencil, Utensils } from "lucide-react";
 import { calculateNutrition } from "@/ai/flows/calculate-nutrition-flow";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const foodItemSchema = z.object({
   foodName: z.string().min(1, "Food name is required."),
@@ -41,352 +49,481 @@ const mealSchema = z.object({
 });
 
 const dailyLogSchema = z.object({
-  day: z.string().min(1, "Day name is required (e.g., Day 1, Monday)."),
+  day: z.string().min(1, "Day name is required."),
   date: z.date(),
   meals: z.array(mealSchema),
 });
 
 type DailyLogFormData = z.infer<typeof dailyLogSchema>;
 
-const defaultMeals = [
-    { time: "05:00", title: "Before Breakfast" },
-    { time: "08:00", title: "Breakfast" },
-    { time: "11:00", title: "Mid-Morning Snacks" },
-    { time: "13:00", title: "Lunch" },
-    { time: "16:00", title: "Evening Snacks" },
-    { time: "19:00", title: "Dinner" },
+const PRESET_MEALS = [
+  { label: "Before Breakfast", time: "05:00" },
+  { label: "Breakfast", time: "08:00" },
+  { label: "Mid Morning Snacks", time: "11:00" },
+  { label: "Lunch", time: "13:00" },
+  { label: "Evening Snacks", time: "16:00" },
+  { label: "Dinner", time: "19:00" },
 ];
 
 const formatTime12Hour = (time24: string) => {
-    if (!time24 || !time24.includes(':')) return 'N/A';
-    const [hours, minutes] = time24.split(':');
-    const h = parseInt(hours, 10);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const hour12 = h % 12 || 12;
-    return `${hour12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+  if (!time24 || !time24.includes(':')) return '';
+  const [hours, minutes] = time24.split(':');
+  const h = parseInt(hours, 10);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour12 = h % 12 || 12;
+  return `${hour12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
 };
 
-const MealCard = ({ form, mealIndex, removeMeal, handleFetchNutrition, isFetchingNutrition }: any) => {
-    const { fields: foodFields, append: appendFood, remove: removeFood } = useFieldArray({
-        control: form.control,
-        name: `meals.${mealIndex}.foodItems`,
-    });
+// Single food item row inside the meal dialog
+const FoodItemRow = ({ form, mealIndex, foodIndex, removeFood, handleFetchNutrition, isFetchingNutrition }: any) => {
+  const uniqueId = `${mealIndex}-${foodIndex}`;
+  const isFetching = isFetchingNutrition === uniqueId;
 
-    const mealData = useWatch({ control: form.control, name: `meals.${mealIndex}` });
-    const totalCalories = mealData.foodItems.reduce((acc: number, item: any) => acc + (Number(item.calories) || 0), 0);
-    const totalProtein = mealData.foodItems.reduce((acc: number, item: any) => acc + (Number(item.protein) || 0), 0);
-    const totalFat = mealData.foodItems.reduce((acc: number, item: any) => acc + (Number(item.fat) || 0), 0);
-    const totalCarbs = mealData.foodItems.reduce((acc: number, item: any) => acc + (Number(item.carbs) || 0), 0);
+  return (
+    <div className="p-3 border rounded-lg bg-background space-y-2">
+      <div className="grid grid-cols-2 gap-2">
+        <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.foodName`} render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-xs">Food Name</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g., Oats" {...field} onBlur={() => handleFetchNutrition(mealIndex, foodIndex)} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.quantity`} render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-xs">Quantity</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g., 1 bowl" {...field} onBlur={() => handleFetchNutrition(mealIndex, foodIndex)} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+      </div>
+      <div className="grid grid-cols-5 gap-2">
+        {(['calories', 'protein', 'fat', 'carbs', 'fibre'] as const).map(nutrient => (
+          <FormField key={nutrient} control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.${nutrient}`} render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-1 text-xs text-muted-foreground capitalize">
+                {isFetching ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3 w-3" />}
+                {nutrient === 'calories' ? 'Kcal' : nutrient.charAt(0).toUpperCase() + nutrient.slice(1)}
+              </FormLabel>
+              <FormControl>
+                <Input readOnly {...field} className="bg-muted/50 text-xs h-8" />
+              </FormControl>
+            </FormItem>
+          )} />
+        ))}
+      </div>
+      <div className="flex justify-end">
+        <Button type="button" variant="ghost" size="sm" className="text-destructive h-7 text-xs" onClick={() => removeFood(foodIndex)}>
+          <Trash2 className="h-3 w-3 mr-1" /> Remove
+        </Button>
+      </div>
+    </div>
+  );
+};
 
-    const [isEditingTime, setIsEditingTime] = useState(false);
+// Meal entry dialog — shown when user clicks a meal button
+const MealEntryDialog = ({ open, onClose, form, mealIndex, handleFetchNutrition, isFetchingNutrition }: any) => {
+  const [isEditingTime, setIsEditingTime] = useState(false);
 
-    return (
-        <Card className="bg-muted/30">
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                     <div className="flex-1 flex items-center gap-2">
-                        <FormField control={form.control} name={`meals.${mealIndex}.time`} render={({ field }) => (
-                            <FormItem className="flex items-center gap-2">
-                                {isEditingTime ? (
-                                    <FormControl><Input type="time" {...field} className="text-lg font-semibold border-2 border-primary shadow-none px-1 w-32" autoFocus onBlur={() => setIsEditingTime(false)} /></FormControl>
-                                ) : (
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-lg font-semibold">{formatTime12Hour(field.value)}</span>
-                                        <Button type="button" variant="ghost" size="icon" onClick={() => setIsEditingTime(true)} className="text-blue-500">
-                                            <Edit className="h-4 w-4"/>
-                                        </Button>
-                                    </div>
-                                )}
-                                <FormMessage />
-                            </FormItem>
-                        )} />
-                         <FormField control={form.control} name={`meals.${mealIndex}.title`} render={({ field }) => (
-                            <FormItem className="flex-1"><FormControl><Input placeholder="e.g., Breakfast" {...field} className="text-lg font-semibold border-0 bg-transparent shadow-none px-1" /></FormControl><FormMessage /></FormItem>
-                        )} />
-                     </div>
-                       <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => removeMeal(mealIndex)}>
-                          <Trash2 className="h-4 w-4" />
-                      </Button>
-                </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-               {foodFields.map((food, foodIndex) => {
-                   const uniqueId = `${mealIndex}-${foodIndex}`;
-                   return (
-                      <div key={food.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 p-2 border rounded-md relative items-start bg-background">
-                          <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.foodName`} render={({ field }) => (
-                              <FormItem className="md:col-span-3"><FormLabel>Food</FormLabel><FormControl><Input placeholder="Oats with berries" {...field} onBlur={() => handleFetchNutrition(mealIndex, foodIndex)} /></FormControl><FormMessage /></FormItem>
-                          )} />
-                          <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.quantity`} render={({ field }) => (
-                              <FormItem className="md:col-span-2"><FormLabel>Quantity</FormLabel><FormControl><Input placeholder="1 bowl" {...field} onBlur={() => handleFetchNutrition(mealIndex, foodIndex)}/></FormControl><FormMessage /></FormItem>
-                          )} />
-                          <div className="md:col-span-6 grid grid-cols-2 md:grid-cols-5 gap-2">
-                              <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.calories`} render={({field}) => (
-                                <FormItem><FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">{isFetchingNutrition === uniqueId ? <Loader2 className="h-3 w-3 animate-spin"/> : <BrainCircuit className="h-3 w-3"/>} Cals</FormLabel><FormControl><Input readOnly {...field} className="bg-muted/50" /></FormControl></FormItem>
-                              )} />
-                              <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.protein`} render={({field}) => (
-                                <FormItem><FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">{isFetchingNutrition === uniqueId ? <Loader2 className="h-3 w-3 animate-spin"/> : <BrainCircuit className="h-3 w-3"/>} Protein</FormLabel><FormControl><Input readOnly {...field} className="bg-muted/50"/></FormControl></FormItem>
-                               )} />
-                               <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.fat`} render={({field}) => (
-                                <FormItem><FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">{isFetchingNutrition === uniqueId ? <Loader2 className="h-3 w-3 animate-spin"/> : <BrainCircuit className="h-3 w-3"/>} Fat</FormLabel><FormControl><Input readOnly {...field} className="bg-muted/50"/></FormControl></FormItem>
-                               )} />
-                               <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.carbs`} render={({field}) => (
-                                <FormItem><FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">{isFetchingNutrition === uniqueId ? <Loader2 className="h-3 w-3 animate-spin"/> : <BrainCircuit className="h-3 w-3"/>} Carbs</FormLabel><FormControl><Input readOnly {...field} className="bg-muted/50"/></FormControl></FormItem>
-                               )} />
-                               <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.fibre`} render={({field}) => (
-                                <FormItem><FormLabel className="flex items-center gap-1 text-xs text-muted-foreground">{isFetchingNutrition === uniqueId ? <Loader2 className="h-3 w-3 animate-spin"/> : <BrainCircuit className="h-3 w-3"/>} Fibre</FormLabel><FormControl><Input readOnly {...field} className="bg-muted/50"/></FormControl></FormItem>
-                               )} />
-                          </div>
-                           <div className="flex items-end">
-                                <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => removeFood(foodIndex)}>
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                      </div>
-                   )
-               })}
-               <Button type="button" variant="outline" size="sm" onClick={() => appendFood({ foodName: "", quantity: "", calories: 0, protein: 0, fat: 0, carbs: 0, fibre: 0 })}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Food Item
-                </Button>
-            </CardContent>
-            <CardFooter className="text-sm font-medium text-muted-foreground grid grid-cols-2 md:grid-cols-4 gap-2">
-                <p>Meal Cals: <span className="text-primary font-bold">{totalCalories.toFixed(0)}</span></p>
-                <p>Meal Protein: <span className="text-primary font-bold">{totalProtein.toFixed(1)}g</span></p>
-                <p>Meal Fat: <span className="text-primary font-bold">{totalFat.toFixed(1)}g</span></p>
-                <p>Meal Carbs: <span className="text-primary font-bold">{totalCarbs.toFixed(1)}g</span></p>
-            </CardFooter>
-        </Card>
-    );
-}
+  const { fields: foodFields, append: appendFood, remove: removeFood } = useFieldArray({
+    control: form.control,
+    name: `meals.${mealIndex}.foodItems`,
+  });
 
+  const mealData = useWatch({ control: form.control, name: `meals.${mealIndex}` });
+  const totalCalories = mealData?.foodItems?.reduce((acc: number, item: any) => acc + (Number(item.calories) || 0), 0) ?? 0;
+  const totalProtein  = mealData?.foodItems?.reduce((acc: number, item: any) => acc + (Number(item.protein) || 0), 0) ?? 0;
+  const totalFat      = mealData?.foodItems?.reduce((acc: number, item: any) => acc + (Number(item.fat) || 0), 0) ?? 0;
+  const totalCarbs    = mealData?.foodItems?.reduce((acc: number, item: any) => acc + (Number(item.carbs) || 0), 0) ?? 0;
+
+  if (mealIndex === null || mealIndex === undefined) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-2xl flex flex-col max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle>
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Time field */}
+              <FormField control={form.control} name={`meals.${mealIndex}.time`} render={({ field }) => (
+                <FormItem className="flex items-center gap-1 m-0">
+                  {isEditingTime ? (
+                    <FormControl>
+                      <Input type="time" {...field} className="w-28 h-8 font-mono text-sm" autoFocus onBlur={() => setIsEditingTime(false)} />
+                    </FormControl>
+                  ) : (
+                    <button type="button" className="flex items-center gap-1 text-sm font-mono text-muted-foreground hover:text-foreground" onClick={() => setIsEditingTime(true)}>
+                      {formatTime12Hour(field.value) || "Set time"}
+                      <Pencil className="h-3 w-3" />
+                    </button>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )} />
+              {/* Title field */}
+              <FormField control={form.control} name={`meals.${mealIndex}.title`} render={({ field }) => (
+                <FormItem className="flex-1 m-0">
+                  <FormControl>
+                    <Input {...field} className="text-base font-semibold border-0 bg-transparent shadow-none px-0 h-auto focus-visible:ring-0" placeholder="Meal name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+          </DialogTitle>
+        </DialogHeader>
+
+        <ScrollArea className="flex-1 pr-2">
+          <div className="space-y-3 py-1">
+            {foodFields.map((food, foodIndex) => (
+              <FoodItemRow
+                key={food.id}
+                form={form}
+                mealIndex={mealIndex}
+                foodIndex={foodIndex}
+                removeFood={removeFood}
+                handleFetchNutrition={handleFetchNutrition}
+                isFetchingNutrition={isFetchingNutrition}
+              />
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => appendFood({ foodName: "", quantity: "", calories: 0, protein: 0, fat: 0, carbs: 0, fibre: 0 })}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Food Item
+            </Button>
+          </div>
+        </ScrollArea>
+
+        {/* Meal nutrient totals */}
+        <div className="border-t pt-3 mt-1">
+          <p className="text-xs text-muted-foreground font-medium mb-2">Meal Totals</p>
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <div className="bg-primary/10 rounded-lg p-2">
+              <p className="text-xs text-muted-foreground">Calories</p>
+              <p className="font-bold text-primary text-lg">{totalCalories.toFixed(0)}</p>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2">
+              <p className="text-xs text-muted-foreground">Protein</p>
+              <p className="font-bold text-blue-600 text-lg">{totalProtein.toFixed(1)}g</p>
+            </div>
+            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2">
+              <p className="text-xs text-muted-foreground">Fat</p>
+              <p className="font-bold text-orange-600 text-lg">{totalFat.toFixed(1)}g</p>
+            </div>
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2">
+              <p className="text-xs text-muted-foreground">Carbs</p>
+              <p className="font-bold text-green-600 text-lg">{totalCarbs.toFixed(1)}g</p>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button type="button" onClick={onClose} className="w-full sm:w-auto">Done</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export default function DailyDietLogPage() {
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isFetchingNutrition, setIsFetchingNutrition] = useState<string | null>(null);
-    const [userId, setUserId] = useState<string | null>(null);
-    const { toast } = useToast();
-    const { db, auth } = useFirebase();
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const logId = searchParams.get('logId');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFetchingNutrition, setIsFetchingNutrition] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [editingMealIndex, setEditingMealIndex] = useState<number | null>(null);
 
-    const form = useForm<DailyLogFormData>({
-        resolver: zodResolver(dailyLogSchema),
-        defaultValues: {
-            day: "New Log",
-            date: new Date(),
-            meals: [],
-        },
+  const { toast } = useToast();
+  const { db, auth } = useFirebase();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const logId = searchParams.get('logId');
+
+  const form = useForm<DailyLogFormData>({
+    resolver: zodResolver(dailyLogSchema),
+    defaultValues: { day: "New Log", date: new Date(), meals: [] },
+  });
+
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: "meals" });
+
+  const dayData = useWatch({ control: form.control });
+  const dayTotalCalories = dayData.meals?.reduce((mAcc: number, meal: any) => mAcc + (meal.foodItems?.reduce((fAcc: number, item: any) => fAcc + (Number(item.calories) || 0), 0) ?? 0), 0) ?? 0;
+  const dayTotalProtein  = dayData.meals?.reduce((mAcc: number, meal: any) => mAcc + (meal.foodItems?.reduce((fAcc: number, item: any) => fAcc + (Number(item.protein) || 0), 0) ?? 0), 0) ?? 0;
+  const dayTotalFat      = dayData.meals?.reduce((mAcc: number, meal: any) => mAcc + (meal.foodItems?.reduce((fAcc: number, item: any) => fAcc + (Number(item.fat) || 0), 0) ?? 0), 0) ?? 0;
+  const dayTotalCarbs    = dayData.meals?.reduce((mAcc: number, meal: any) => mAcc + (meal.foodItems?.reduce((fAcc: number, item: any) => fAcc + (Number(item.carbs) || 0), 0) ?? 0), 0) ?? 0;
+  const dayTotalFibre    = dayData.meals?.reduce((mAcc: number, meal: any) => mAcc + (meal.foodItems?.reduce((fAcc: number, item: any) => fAcc + (Number(item.fibre) || 0), 0) ?? 0), 0) ?? 0;
+
+  useEffect(() => {
+    if (!auth) return;
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUserId(user ? user.uid : null);
     });
+    return () => unsubscribe();
+  }, [auth]);
 
-    const { fields, append, remove } = useFieldArray({
-        control: form.control,
-        name: "meals",
-    });
-
-    const dayData = useWatch({ control: form.control });
-    const dayTotalCalories = dayData.meals?.reduce((mealAcc: number, meal: any) => mealAcc + meal.foodItems.reduce((foodAcc: number, item: any) => foodAcc + (Number(item.calories) || 0), 0), 0) || 0;
-    const dayTotalProtein = dayData.meals?.reduce((mealAcc: number, meal: any) => mealAcc + meal.foodItems.reduce((foodAcc: number, item: any) => foodAcc + (Number(item.protein) || 0), 0), 0) || 0;
-    const dayTotalFat = dayData.meals?.reduce((mealAcc: number, meal: any) => mealAcc + meal.foodItems.reduce((foodAcc: number, item: any) => foodAcc + (Number(item.fat) || 0), 0), 0) || 0;
-    const dayTotalCarbs = dayData.meals?.reduce((mealAcc: number, meal: any) => mealAcc + meal.foodItems.reduce((foodAcc: number, item: any) => foodAcc + (Number(item.carbs) || 0), 0), 0) || 0;
-    const dayTotalFibre = dayData.meals?.reduce((mealAcc: number, meal: any) => mealAcc + meal.foodItems.reduce((foodAcc: number, item: any) => foodAcc + (Number(item.fibre) || 0), 0), 0) || 0;
-    
-    useEffect(() => {
-        if (!auth) return;
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setUserId(user ? user.uid : null);
-        });
-        return () => unsubscribe();
-    }, [auth]);
-
-    useEffect(() => {
-        if (!userId || !db) {
-            setIsLoading(false);
-            return;
-        }
-
-        const fetchLog = async () => {
-            setIsLoading(true);
-            if(logId) {
-                 const logDocRef = doc(db, `users/${userId}/selfDietPlans`, logId);
-                 try {
-                    const docSnap = await getDoc(logDocRef);
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        form.reset({
-                             ...data,
-                            date: data.date ? (data.date as Timestamp).toDate() : new Date(),
-                        });
-                    } else {
-                        toast({ variant: 'destructive', title: "Error", description: "Log not found." });
-                        router.push('/dashboard/self-diet-plan');
-                    }
-                } catch (error) {
-                    console.error("Error fetching diet log:", error);
-                    toast({ variant: 'destructive', title: "Error", description: "Could not load your log." });
-                }
-            } else {
-                form.reset({ day: "Today's Log", date: new Date(), meals: [{ time: "05:00", title: "Before Breakfast", foodItems: [] }]});
-            }
-            setIsLoading(false);
-        };
-
-        fetchLog();
-    }, [userId, db, logId, form, toast, router]);
-
-
-    const handleFetchNutrition = useDebouncedCallback(async (mealIndex: number, foodIndex: number) => {
-        const foodItem = form.getValues(`meals.${mealIndex}.foodItems.${foodIndex}`);
-        if (!foodItem.foodName || !foodItem.quantity) return;
-
-        const uniqueId = `${mealIndex}-${foodIndex}`;
-        setIsFetchingNutrition(uniqueId);
+  useEffect(() => {
+    if (!userId || !db) { setIsLoading(false); return; }
+    const fetchLog = async () => {
+      setIsLoading(true);
+      if (logId) {
         try {
-            const result = await calculateNutrition({ foodQuery: `${foodItem.quantity} of ${foodItem.foodName}` });
-            form.setValue(`meals.${mealIndex}.foodItems.${foodIndex}.calories`, result.calories, { shouldDirty: true });
-            form.setValue(`meals.${mealIndex}.foodItems.${foodIndex}.protein`, result.protein, { shouldDirty: true });
-            form.setValue(`meals.${mealIndex}.foodItems.${foodIndex}.fat`, result.fat, { shouldDirty: true });
-            form.setValue(`meals.${mealIndex}.foodItems.${foodIndex}.carbs`, result.carbs, { shouldDirty: true });
-            form.setValue(`meals.${mealIndex}.foodItems.${foodIndex}.fibre`, result.fibre, { shouldDirty: true });
-        } catch (error) {
-            console.error("Error fetching nutrition data:", error);
-            toast({ variant: "destructive", title: "AI Error", description: "Could not fetch nutrition data." });
-        } finally {
-            setIsFetchingNutrition(null);
-        }
-    }, 500);
-
-    const handleAddMeal = () => {
-        const currentMealCount = fields.length;
-        const nextMeal = defaultMeals[currentMealCount % defaultMeals.length] || { time: "21:00", title: "Post-Dinner" };
-        append({ 
-            time: nextMeal.time, 
-            title: nextMeal.title, 
-            foodItems: [] 
-        });
-    };
-
-    const onSubmit = async (data: DailyLogFormData) => {
-        if (!userId || !db) {
-            toast({ variant: "destructive", title: "Error", description: "You must be logged in to save a log." });
-            return;
-        }
-        setIsSubmitting(true);
-        const dataToSave = {
-            ...data,
-            updatedAt: serverTimestamp(),
-        };
-
-        try {
-            if (logId) {
-                const logDocRef = doc(db, `users/${userId}/selfDietPlans`, logId);
-                await setDoc(logDocRef, dataToSave, { merge: true });
-                toast({ title: "Success", description: "Your diet log has been updated." });
-            } else {
-                 const collectionRef = collection(db, `users/${userId}/selfDietPlans`);
-                 await addDoc(collectionRef, dataToSave);
-                 toast({ title: "Success", description: "Your diet log has been created." });
-            }
+          const docSnap = await getDoc(doc(db, `users/${userId}/selfDietPlans`, logId));
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            form.reset({ ...data, date: data.date ? (data.date as Timestamp).toDate() : new Date() });
+          } else {
+            toast({ variant: 'destructive', title: "Error", description: "Log not found." });
             router.push('/dashboard/self-diet-plan');
-        } catch (error) {
-            console.error("Error saving diet log:", error);
-            toast({ variant: "destructive", title: "Error", description: "Could not save your diet log." });
-        } finally {
-            setIsSubmitting(false);
+          }
+        } catch {
+          toast({ variant: 'destructive', title: "Error", description: "Could not load your log." });
         }
+      } else {
+        form.reset({ day: format(new Date(), 'EEEE'), date: new Date(), meals: [] });
+      }
+      setIsLoading(false);
     };
-    
-    if (isLoading) {
-        return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>
-    }
+    fetchLog();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, db, logId]);
 
-    return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <Link href="/dashboard/self-diet-plan">
-                                    <Button variant="outline" size="icon" type="button">
-                                    <ChevronLeft className="h-4 w-4" />
-                                    </Button>
-                                </Link>
-                                <div>
-                                    <CardTitle>{logId ? "Edit Diet Log" : "Add New Diet Log"}</CardTitle>
-                                    <CardDescription>Log the food you've eaten for a specific day. Use our AI to automatically calculate nutrition facts.</CardDescription>
-                                </div>
-                            </div>
-                            <Button type="submit" disabled={isSubmitting || !!isFetchingNutrition}>
-                                {(isSubmitting || !!isFetchingNutrition) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                <Save className="mr-2 h-4 w-4" />
-                                {isSubmitting ? "Saving..." : isFetchingNutrition ? "Calculating..." : "Save Log"}
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <Card>
-                             <CardContent className="p-6 flex items-center gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="day"
-                                    render={({ field }) => (
-                                        <FormItem className="flex-1">
-                                            <FormLabel>Day Name</FormLabel>
-                                            <FormControl><Input placeholder="e.g., Monday" {...field} /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="date"
-                                    render={({ field }) => (
-                                        <FormItem className="flex-1">
-                                            <FormLabel>Date</FormLabel>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <FormControl>
-                                                        <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                        </Button>
-                                                    </FormControl>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                                                </PopoverContent>
-                                            </Popover>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </CardContent>
-                        </Card>
-                        {fields.map((field, index) => (
-                            <MealCard 
-                                key={field.id} 
-                                form={form} 
-                                mealIndex={index} 
-                                removeMeal={remove}
-                                handleFetchNutrition={handleFetchNutrition}
-                                isFetchingNutrition={isFetchingNutrition}
-                            />
-                        ))}
-                        <Button type="button" variant="secondary" onClick={handleAddMeal}>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Meal
+  const handleFetchNutrition = useDebouncedCallback(async (mealIndex: number, foodIndex: number) => {
+    const foodItem = form.getValues(`meals.${mealIndex}.foodItems.${foodIndex}`);
+    if (!foodItem.foodName || !foodItem.quantity) return;
+    const uniqueId = `${mealIndex}-${foodIndex}`;
+    setIsFetchingNutrition(uniqueId);
+    try {
+      const result = await calculateNutrition({ foodQuery: `${foodItem.quantity} of ${foodItem.foodName}` });
+      form.setValue(`meals.${mealIndex}.foodItems.${foodIndex}.calories`, result.calories, { shouldDirty: true });
+      form.setValue(`meals.${mealIndex}.foodItems.${foodIndex}.protein`,  result.protein,  { shouldDirty: true });
+      form.setValue(`meals.${mealIndex}.foodItems.${foodIndex}.fat`,      result.fat,      { shouldDirty: true });
+      form.setValue(`meals.${mealIndex}.foodItems.${foodIndex}.carbs`,    result.carbs,    { shouldDirty: true });
+      form.setValue(`meals.${mealIndex}.foodItems.${foodIndex}.fibre`,    result.fibre,    { shouldDirty: true });
+    } catch {
+      toast({ variant: "destructive", title: "AI Error", description: "Could not fetch nutrition data." });
+    } finally {
+      setIsFetchingNutrition(null);
+    }
+  }, 500);
+
+  const handleOpenPresetMeal = (label: string, time: string) => {
+    const meals = form.getValues('meals');
+    const existingIdx = meals.findIndex(m => m.title === label);
+    if (existingIdx >= 0) {
+      setEditingMealIndex(existingIdx);
+    } else {
+      const newIdx = fields.length;
+      append({ time, title: label, foodItems: [] });
+      setEditingMealIndex(newIdx);
+    }
+  };
+
+  const handleOpenOtherFood = () => {
+    const newIdx = fields.length;
+    append({ time: "21:00", title: "Other Food", foodItems: [] });
+    setEditingMealIndex(newIdx);
+  };
+
+  const onSubmit = async (data: DailyLogFormData) => {
+    if (!userId || !db) return;
+    setIsSubmitting(true);
+    const dataToSave = { ...data, updatedAt: serverTimestamp() };
+    try {
+      if (logId) {
+        await setDoc(doc(db, `users/${userId}/selfDietPlans`, logId), dataToSave, { merge: true });
+        toast({ title: "Success", description: "Diet log updated." });
+      } else {
+        await addDoc(collection(db, `users/${userId}/selfDietPlans`), dataToSave);
+        toast({ title: "Success", description: "Diet log created." });
+      }
+      router.push('/dashboard/self-diet-plan');
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Could not save your diet log." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) return (
+    <div className="flex justify-center items-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
+  );
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <Link href="/dashboard/self-diet-plan">
+                  <Button variant="outline" size="icon" type="button">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <div>
+                  <CardTitle>{logId ? "Edit Diet Log" : "Add New Diet Log"}</CardTitle>
+                  <CardDescription>Log your daily food intake. AI auto-calculates nutrition values.</CardDescription>
+                </div>
+              </div>
+              <Button type="submit" disabled={isSubmitting || !!isFetchingNutrition}>
+                {(isSubmitting || !!isFetchingNutrition) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Save className="mr-2 h-4 w-4" />
+                {isSubmitting ? "Saving..." : isFetchingNutrition ? "Calculating..." : "Save Log"}
+              </Button>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* Day name + Date */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <FormField control={form.control} name="day" render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Day Name</FormLabel>
+                  <FormControl><Input placeholder="e.g., Monday" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="date" render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel>Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
-                    </CardContent>
-                     <CardFooter className="grid grid-cols-2 md:grid-cols-5 gap-4 text-lg font-semibold text-muted-foreground bg-muted p-4 rounded-b-lg">
-                        <p>Daily Cals: <span className="text-primary">{dayTotalCalories.toFixed(0)}</span></p>
-                        <p>Daily Protein: <span className="text-primary">{dayTotalProtein.toFixed(1)}g</span></p>
-                        <p>Daily Fat: <span className="text-primary">{dayTotalFat.toFixed(1)}g</span></p>
-                        <p>Daily Carbs: <span className="text-primary">{dayTotalCarbs.toFixed(1)}g</span></p>
-                        <p>Daily Fibre: <span className="text-primary">{dayTotalFibre.toFixed(1)}g</span></p>
-                    </CardFooter>
-                </Card>
-            </form>
-        </Form>
-    );
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            {/* Meal buttons */}
+            <div>
+              <p className="text-sm font-semibold mb-3">Add Meals</p>
+              <div className="flex flex-wrap gap-2">
+                {PRESET_MEALS.map(meal => {
+                  const isAdded = dayData.meals?.some((m: any) => m.title === meal.label);
+                  return (
+                    <Button
+                      key={meal.label}
+                      type="button"
+                      variant={isAdded ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleOpenPresetMeal(meal.label, meal.time)}
+                      className="gap-1"
+                    >
+                      {isAdded ? <Pencil className="h-3 w-3" /> : <PlusCircle className="h-3 w-3" />}
+                      {meal.label}
+                    </Button>
+                  );
+                })}
+                <Button type="button" variant="outline" size="sm" onClick={handleOpenOtherFood} className="gap-1">
+                  <PlusCircle className="h-3 w-3" /> Other Food
+                </Button>
+              </div>
+            </div>
+
+            {/* Added meals summary list */}
+            {fields.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-semibold">Logged Meals</p>
+                <div className="grid gap-2">
+                  {fields.map((field, index) => {
+                    const mealData = dayData.meals?.[index];
+                    const mealCalories = mealData?.foodItems?.reduce((acc: number, item: any) => acc + (Number(item.calories) || 0), 0) ?? 0;
+                    const foodCount = mealData?.foodItems?.length ?? 0;
+                    return (
+                      <div key={field.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <Utensils className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div>
+                            <p className="font-medium text-sm">{mealData?.title || "Meal"}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatTime12Hour(mealData?.time || "") && `${formatTime12Hour(mealData?.time || "")} · `}
+                              {foodCount} item{foodCount !== 1 ? 's' : ''} · {mealCalories.toFixed(0)} kcal
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingMealIndex(index)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => {
+                            remove(index);
+                            if (editingMealIndex === index) setEditingMealIndex(null);
+                          }}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Daily nutrition totals */}
+            <div className="rounded-xl border bg-primary/5 p-4">
+              <p className="text-sm font-semibold mb-3">Daily Nutrition Total</p>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
+                <div className="space-y-0.5">
+                  <p className="text-xs text-muted-foreground">Calories</p>
+                  <p className="text-2xl font-bold text-primary">{dayTotalCalories.toFixed(0)}</p>
+                  <p className="text-xs text-muted-foreground">kcal</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs text-muted-foreground">Protein</p>
+                  <p className="text-2xl font-bold">{dayTotalProtein.toFixed(1)}</p>
+                  <p className="text-xs text-muted-foreground">g</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs text-muted-foreground">Fat</p>
+                  <p className="text-2xl font-bold">{dayTotalFat.toFixed(1)}</p>
+                  <p className="text-xs text-muted-foreground">g</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs text-muted-foreground">Carbs</p>
+                  <p className="text-2xl font-bold">{dayTotalCarbs.toFixed(1)}</p>
+                  <p className="text-xs text-muted-foreground">g</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs text-muted-foreground">Fibre</p>
+                  <p className="text-2xl font-bold">{dayTotalFibre.toFixed(1)}</p>
+                  <p className="text-xs text-muted-foreground">g</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Meal entry dialog */}
+        {editingMealIndex !== null && (
+          <MealEntryDialog
+            open={editingMealIndex !== null}
+            onClose={() => setEditingMealIndex(null)}
+            form={form}
+            mealIndex={editingMealIndex}
+            handleFetchNutrition={handleFetchNutrition}
+            isFetchingNutrition={isFetchingNutrition}
+          />
+        )}
+      </form>
+    </Form>
+  );
 }
