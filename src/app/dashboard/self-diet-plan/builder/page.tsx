@@ -57,12 +57,12 @@ const dailyLogSchema = z.object({
 type DailyLogFormData = z.infer<typeof dailyLogSchema>;
 
 const PRESET_MEALS = [
-  { label: "Before Breakfast", time: "05:00", outlineClass: "bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-200 dark:bg-purple-900/40 dark:hover:bg-purple-900/60 dark:text-purple-200 dark:border-purple-800", activeClass: "bg-purple-500 hover:bg-purple-600 text-white border-purple-500" },
-  { label: "Breakfast",        time: "08:00", outlineClass: "bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-200 dark:bg-orange-900/40 dark:hover:bg-orange-900/60 dark:text-orange-200 dark:border-orange-800", activeClass: "bg-orange-500 hover:bg-orange-600 text-white border-orange-500" },
-  { label: "Mid Morning Snacks", time: "11:00", outlineClass: "bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border-yellow-200 dark:bg-yellow-900/40 dark:hover:bg-yellow-900/60 dark:text-yellow-200 dark:border-yellow-800", activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" },
-  { label: "Lunch",            time: "13:00", outlineClass: "bg-green-100 hover:bg-green-200 text-green-800 border-green-200 dark:bg-green-900/40 dark:hover:bg-green-900/60 dark:text-green-200 dark:border-green-800", activeClass: "bg-green-500 hover:bg-green-600 text-white border-green-500" },
-  { label: "Evening Snacks",   time: "16:00", outlineClass: "bg-cyan-100 hover:bg-cyan-200 text-cyan-800 border-cyan-200 dark:bg-cyan-900/40 dark:hover:bg-cyan-900/60 dark:text-cyan-200 dark:border-cyan-800", activeClass: "bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-500" },
-  { label: "Dinner",           time: "19:00", outlineClass: "bg-rose-100 hover:bg-rose-200 text-rose-800 border-rose-200 dark:bg-rose-900/40 dark:hover:bg-rose-900/60 dark:text-rose-200 dark:border-rose-800", activeClass: "bg-rose-500 hover:bg-rose-600 text-white border-rose-500" },
+  { label: "Before Breakfast", time: "05:00", outlineClass: "bg-purple-500 hover:bg-purple-600 text-white border-purple-500", activeClass: "bg-purple-800 hover:bg-purple-900 text-white border-purple-800 ring-2 ring-white dark:ring-purple-300" },
+  { label: "Breakfast",        time: "08:00", outlineClass: "bg-orange-500 hover:bg-orange-600 text-white border-orange-500", activeClass: "bg-orange-800 hover:bg-orange-900 text-white border-orange-800 ring-2 ring-white dark:ring-orange-300" },
+  { label: "Mid Morning Snacks", time: "11:00", outlineClass: "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500", activeClass: "bg-yellow-700 hover:bg-yellow-800 text-white border-yellow-700 ring-2 ring-white dark:ring-yellow-300" },
+  { label: "Lunch",            time: "13:00", outlineClass: "bg-green-500 hover:bg-green-600 text-white border-green-500", activeClass: "bg-green-800 hover:bg-green-900 text-white border-green-800 ring-2 ring-white dark:ring-green-300" },
+  { label: "Evening Snacks",   time: "16:00", outlineClass: "bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-500", activeClass: "bg-cyan-800 hover:bg-cyan-900 text-white border-cyan-800 ring-2 ring-white dark:ring-cyan-300" },
+  { label: "Dinner",           time: "19:00", outlineClass: "bg-rose-500 hover:bg-rose-600 text-white border-rose-500", activeClass: "bg-rose-800 hover:bg-rose-900 text-white border-rose-800 ring-2 ring-white dark:ring-rose-300" },
 ];
 
 const formatTime12Hour = (time24: string) => {
