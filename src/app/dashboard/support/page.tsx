@@ -189,6 +189,8 @@ export default function SupportPage() {
           <CardDescription>A history of your support requests.</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Table — md and above */}
+          <div className="overflow-x-auto hidden md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -240,6 +242,51 @@ export default function SupportPage() {
               )}
             </TableBody>
           </Table>
+          </div>
+
+          {/* Cards — below md */}
+          <div className="grid gap-3 md:hidden">
+            {loadingTickets ? (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="rounded-lg border p-4 space-y-2">
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              ))
+            ) : tickets.length > 0 ? (
+              tickets.map((ticket) => (
+                <div key={ticket.id} className="rounded-lg border p-4">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                      <p className="font-medium">{ticket.subject}</p>
+                      <p className="font-mono text-xs text-muted-foreground">#{ticket.id.slice(-6)}</p>
+                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link href={`/dashboard/support/${ticket.id}`} className="shrink-0">
+                            <Button variant="ghost" size="icon">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View Ticket</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <Badge variant={ticket.status === 'Closed' ? 'secondary' : 'default'}>{ticket.status}</Badge>
+                    <span className="text-xs text-muted-foreground">{format(ticket.createdAt.toDate(), 'PP')}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-muted-foreground py-6">You haven't raised any tickets yet.</p>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

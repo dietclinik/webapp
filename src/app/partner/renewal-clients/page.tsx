@@ -129,13 +129,14 @@ export default function PartnerRenewalClientsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Table — md and above */}
+          <div className="overflow-x-auto hidden md:block">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Customer</TableHead>
-                <TableHead className="hidden sm:table-cell">Contact</TableHead>
-                <TableHead className="hidden sm:table-cell">Plan</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Plan</TableHead>
                 <TableHead>Expired On</TableHead>
                 <TableHead>Days Expired</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
@@ -156,15 +157,12 @@ export default function PartnerRenewalClientsPage() {
                   const daysAgo = differenceInDays(now, expiredOn);
                   return (
                     <TableRow key={customer.id}>
-                      <TableCell className="font-medium">
-                        {customer.name}
-                        <div className="text-xs text-muted-foreground sm:hidden">{customer.mobile}</div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
+                      <TableCell className="font-medium">{customer.name}</TableCell>
+                      <TableCell>
                         <div className="text-sm">{customer.email}</div>
                         <div className="text-xs text-muted-foreground">{customer.mobile}</div>
                       </TableCell>
-                      <TableCell className="hidden sm:table-cell">
+                      <TableCell>
                         <Badge variant="outline">{customer.planName}</Badge>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">{format(expiredOn, "PP")}</TableCell>
@@ -198,6 +196,56 @@ export default function PartnerRenewalClientsPage() {
             </TableBody>
           </Table>
           </div>
+
+          {/* Cards — below md */}
+          <div className="grid gap-3 md:hidden">
+            {loading ? (
+              [...Array(4)].map((_, i) => (
+                <div key={i} className="rounded-lg border p-4 space-y-2">
+                  <Skeleton className="h-5 w-36" />
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ))
+            ) : filtered.length > 0 ? (
+              filtered.map((customer) => {
+                const expiredOn = customer.subscriptionEndDate.toDate();
+                const daysAgo = differenceInDays(now, expiredOn);
+                return (
+                  <div key={customer.id} className="rounded-lg border p-4">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div>
+                        <p className="font-medium">{customer.name}</p>
+                        <p className="text-xs text-muted-foreground">{customer.mobile}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <DaysExpiredBadge days={daysAgo} />
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link href={`/partner/customers/view/${customer.id}`}>
+                              <Button variant="ghost" size="icon">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent>View Profile</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <Badge variant="outline">{customer.planName}</Badge>
+                      <span>Expired: {format(expiredOn, "PP")}</span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-center text-muted-foreground py-6">
+                {search ? "No customers match your search." : "No expired customers found."}
+              </p>
+            )}
+          </div>
+
           {!loading && filtered.length > 0 && (
             <p className="text-xs text-muted-foreground mt-3">
               Showing {filtered.length} of {customers.length} expired customer{customers.length !== 1 ? "s" : ""}.

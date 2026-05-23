@@ -118,7 +118,7 @@ export default function RevenuePage() {
   return (
     <div className="space-y-6">
       <CardHeader className="px-0">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start flex-wrap gap-3">
           <div>
             <CardTitle className="text-3xl font-bold flex items-center gap-2"><ArrowUpRight className="h-8 w-8 text-primary"/> Revenue</CardTitle>
             <CardDescription>Track income from subscription plan sales.</CardDescription>
@@ -129,7 +129,7 @@ export default function RevenuePage() {
                 id="date"
                 variant={"outline"}
                 className={cn(
-                  "w-[300px] justify-start text-left font-normal",
+                  "w-full sm:w-[300px] justify-start text-left font-normal",
                   !date && "text-muted-foreground"
                 )}
               >
@@ -190,39 +190,64 @@ export default function RevenuePage() {
           <CardTitle>Transaction History</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Customer/Partner Name</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell colSpan={4}><Skeleton className="h-5 w-full" /></TableCell>
-                  </TableRow>
-                ))
-              ) : filteredTransactions.length > 0 ? (
-                filteredTransactions.map(t => (
-                    <TableRow key={t.id}>
-                        <TableCell>{format(t.purchaseDate.toDate(), 'PPP')}</TableCell>
-                        <TableCell>{t.customerName}</TableCell>
-                        <TableCell>{t.planName}</TableCell>
-                        <TableCell className="text-right font-medium">₹{t.amount.toLocaleString()}</TableCell>
-                    </TableRow>
-                  )
-                )
-              ) : (
+          {/* Desktop Table */}
+          <div className="overflow-x-auto hidden md:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">No transactions found for the selected period.</TableCell>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Customer / Partner</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={4}><Skeleton className="h-5 w-full" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : filteredTransactions.length > 0 ? (
+                  filteredTransactions.map(t => (
+                    <TableRow key={t.id}>
+                      <TableCell>{format(t.purchaseDate.toDate(), 'PPP')}</TableCell>
+                      <TableCell>{t.customerName}</TableCell>
+                      <TableCell>{t.planName}</TableCell>
+                      <TableCell className="text-right font-medium">₹{t.amount.toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center">No transactions found for the selected period.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Mobile Cards */}
+          <div className="grid gap-3 md:hidden">
+            {loading ? (
+              [...Array(5)].map((_, i) => <Card key={i}><CardContent className="p-4"><Skeleton className="h-16 w-full" /></CardContent></Card>)
+            ) : filteredTransactions.length > 0 ? (
+              filteredTransactions.map(t => (
+                <Card key={t.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{t.customerName}</p>
+                        <p className="text-sm text-muted-foreground">{t.planName}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{format(t.purchaseDate.toDate(), 'PPP')}</p>
+                      </div>
+                      <p className="font-bold text-primary shrink-0">₹{t.amount.toLocaleString()}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <p className="text-center text-muted-foreground py-8">No transactions found for the selected period.</p>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

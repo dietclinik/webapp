@@ -63,12 +63,12 @@ export default function EventsPage() {
   return (
     <Card>
         <CardHeader>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <CardTitle className="flex items-center gap-2"><CalendarPlus className="h-6 w-6" /> Events</CardTitle>
                     <CardDescription>Manage all your corporate events.</CardDescription>
                 </div>
-                 <Link href="/admin/events/add">
+                 <Link href="/admin/events/add" className="shrink-0">
                     <Button size="sm" className="h-10 gap-1">
                         <PlusCircle className="h-4 w-4" />
                         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add Event</span>
@@ -77,7 +77,9 @@ export default function EventsPage() {
             </div>
         </CardHeader>
         <CardContent>
-             <Table>
+          {/* Desktop table */}
+          <div className="overflow-x-auto hidden md:block">
+            <Table>
                 <TableHeader>
                     <TableRow>
                         <TableHead>Event Name</TableHead>
@@ -122,6 +124,43 @@ export default function EventsPage() {
                     )}
                 </TableBody>
             </Table>
+          </div>
+
+          {/* Mobile card grid */}
+          <div className="grid gap-3 md:hidden">
+            {loading ? (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="h-24 animate-pulse bg-muted rounded-md"></div>
+              ))
+            ) : events.length > 0 ? (
+              events.map((event) => (
+                <Card key={event.id} className="border shadow-sm">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between flex-wrap gap-3">
+                      <div>
+                        <CardTitle className="text-base">{event.title}</CardTitle>
+                        <p className="text-sm text-muted-foreground mt-0.5">{event.corporateName}</p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button variant="ghost" size="icon"><Pencil className="h-4 w-4"/></Button>
+                        <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{format(event.eventTime.toDate(), 'PPP p')}</span>
+                      <Badge variant={event.status === 'Upcoming' ? 'default' : 'secondary'}>
+                        {event.status}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <p className="text-center text-muted-foreground py-4">No events created yet.</p>
+            )}
+          </div>
         </CardContent>
     </Card>
   );

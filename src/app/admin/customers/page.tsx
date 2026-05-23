@@ -275,6 +275,8 @@ export default function CustomersPage() {
         </div>
       </CardHeader>
       <CardContent>
+        {/* Desktop table */}
+        <div className="overflow-x-auto hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -394,6 +396,74 @@ export default function CustomersPage() {
             )}
           </TableBody>
         </Table>
+        </div>
+
+        {/* Mobile card grid */}
+        <div className="grid gap-3 md:hidden">
+          {sortedAndFilteredCustomers.length > 0 ? sortedAndFilteredCustomers.map(customer => (
+            <Card key={customer.id} className="border shadow-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between flex-wrap gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-sm">{customer.name}</span>
+                      {customer.isNew && <Badge>New</Badge>}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{customer.email}</div>
+                    {customer.mobile && <div className="text-xs text-muted-foreground">{customer.mobile}</div>}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button variant="ghost" size="icon" onClick={() => handleViewClick(customer.id)}>
+                      <Eye className="h-4 w-4" />
+                      <span className="sr-only">View customer</span>
+                    </Button>
+                    <Link href={`/admin/customers/edit/${customer.id}`}>
+                      <Button variant="ghost" size="icon">
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit customer</span>
+                      </Button>
+                    </Link>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => setCustomerToDelete(customer)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <span className="sr-only">Delete customer</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete {customer.name}'s data and authentication record.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel onClick={() => setCustomerToDelete(null)}>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDeleteCustomer}>Continue</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pb-3 pt-0">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <Badge variant="outline">{customer.planName}</Badge>
+                  <Badge variant={customer.status === 'Active' ? "success" : "secondary"}>{customer.status}</Badge>
+                  <Badge variant={customer.paymentStatus === 'Paid' ? 'success' : customer.paymentStatus === 'Failed' ? 'destructive' : 'secondary'}>
+                    {customer.paymentStatus || 'N/A'}
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground space-y-0.5">
+                  <div>Expires: {customer.subscriptionEndDate ? format(customer.subscriptionEndDate.toDate(), 'PPP') : 'N/A'}</div>
+                  <div>Member since: {customer.subscriptionStartDate ? format(customer.subscriptionStartDate.toDate(), "yyyy-MM-dd") : customer.since}</div>
+                </div>
+              </CardContent>
+            </Card>
+          )) : (
+            <p className="text-center text-sm text-muted-foreground py-8">No customers found.</p>
+          )}
+        </div>
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">

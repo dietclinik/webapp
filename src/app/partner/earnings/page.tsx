@@ -102,13 +102,14 @@ export default function PartnerEarningsPage() {
                     <CardTitle>Earnings History</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="overflow-x-auto">
+                    {/* Table — md and above */}
+                    <div className="overflow-x-auto hidden md:block">
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Customer</TableHead>
-                                <TableHead className="hidden sm:table-cell">Plan</TableHead>
+                                <TableHead>Plan</TableHead>
                                 <TableHead className="text-right">Amount</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -118,7 +119,7 @@ export default function PartnerEarningsPage() {
                                     <TableRow key={i}>
                                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                                        <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-28" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-28" /></TableCell>
                                         <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
                                     </TableRow>
                                 ))
@@ -127,7 +128,7 @@ export default function PartnerEarningsPage() {
                                     <TableRow key={item.id}>
                                         <TableCell className="whitespace-nowrap">{format(item.purchaseDate.toDate(), 'PP')}</TableCell>
                                         <TableCell>{item.customerName}</TableCell>
-                                        <TableCell className="hidden sm:table-cell"><Badge variant="outline">{item.planName}</Badge></TableCell>
+                                        <TableCell><Badge variant="outline">{item.planName}</Badge></TableCell>
                                         <TableCell className="text-right font-medium whitespace-nowrap">₹{item.vendorEarning.toFixed(2)}</TableCell>
                                     </TableRow>
                                 ))
@@ -138,6 +139,36 @@ export default function PartnerEarningsPage() {
                             )}
                         </TableBody>
                     </Table>
+                    </div>
+
+                    {/* Cards — below md */}
+                    <div className="grid gap-3 md:hidden">
+                        {loading ? (
+                            Array.from({length: 5}).map((_, i) => (
+                                <div key={i} className="rounded-lg border p-4 space-y-2">
+                                    <Skeleton className="h-5 w-32" />
+                                    <Skeleton className="h-4 w-24" />
+                                    <Skeleton className="h-4 w-20" />
+                                </div>
+                            ))
+                        ) : earnings.length > 0 ? (
+                            earnings.map(item => (
+                                <div key={item.id} className="rounded-lg border p-4">
+                                    <div className="flex items-start justify-between">
+                                        <div>
+                                            <p className="font-medium">{item.customerName}</p>
+                                            <p className="text-xs text-muted-foreground">{format(item.purchaseDate.toDate(), 'PP')}</p>
+                                        </div>
+                                        <p className="font-semibold text-sm shrink-0">₹{item.vendorEarning.toFixed(2)}</p>
+                                    </div>
+                                    <div className="mt-2">
+                                        <Badge variant="outline">{item.planName}</Badge>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-muted-foreground py-6">No earnings recorded yet.</p>
+                        )}
                     </div>
                 </CardContent>
             </Card>

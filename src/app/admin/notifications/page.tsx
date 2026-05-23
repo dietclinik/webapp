@@ -63,23 +63,23 @@ export default function AdminNotificationsPage() {
         {notifications.length > 0 ? (
           <ul className="space-y-4">
             {notifications.map(notif => (
-              <li key={notif.id} className={`flex items-start gap-4 p-4 rounded-lg border ${!notif.read ? 'bg-primary/5' : 'bg-muted/50'}`}>
-                <Bell className="h-5 w-5 mt-1 text-primary"/>
-                <div className="flex-1 space-y-1">
-                   <p className="font-medium">
+              <li key={notif.id} className={`flex items-start gap-3 p-4 rounded-lg border ${!notif.read ? 'bg-primary/5' : 'bg-muted/50'}`}>
+                <Bell className="h-5 w-5 mt-1 text-primary shrink-0"/>
+                <div className="flex-1 min-w-0 space-y-1">
+                   <p className="font-medium break-words">
                      <Link href={notif.link} className="hover:underline">{notif.message}</Link>
                    </p>
                    <p className="text-sm text-muted-foreground">
                         {notif.timestamp ? formatDistanceToNow(notif.timestamp.toDate(), { addSuffix: true }) : '...'}
                    </p>
-                </div>
-                <div className="flex gap-2">
+                   <div className="flex flex-wrap gap-2 pt-1">
                     {!notif.read && (
                         <Button variant="outline" size="sm" onClick={() => markAsRead(notif.id)}>Mark as Read</Button>
                     )}
                     <Button variant="ghost" size="icon" onClick={() => deleteNotification(notif.id)} className="text-destructive">
                         <Trash2 className="h-4 w-4" />
                     </Button>
+                   </div>
                 </div>
               </li>
             ))}

@@ -319,14 +319,14 @@ export default function DietPlansPage() {
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <CardTitle>Diet Plan Templates</CardTitle>
               <CardDescription>
                 Create and manage reusable diet plans to assign to customers.
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <Link href="/admin/diet-plans/builder">
                 <Button size="sm" className="h-8 gap-1">
                   <PlusCircle className="h-3.5 w-3.5" />
@@ -339,92 +339,153 @@ export default function DietPlansPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Plan Name</TableHead>
-                <TableHead>Target</TableHead>
-                <TableHead>Created By</TableHead>
-                <TableHead>Date Created</TableHead>
-                <TableHead className="text-center">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {dietPlans.length > 0 ? dietPlans.map(plan => (
-                <TableRow key={plan.id}>
-                  <TableCell className="font-medium">{plan.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{plan.target}</Badge>
-                  </TableCell>
-                  <TableCell>{plan.createdByName}</TableCell>
-                  <TableCell>{plan.created}</TableCell>
-                  <TableCell>
-                    <TooltipProvider>
-                      <div className="flex items-center justify-center gap-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => openAssignDialog(plan)}>
-                              <Users className="h-4 w-4" />
-                              <span className="sr-only">Assign Plan</span>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Assign to Customers</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Link href={`/admin/diet-plans/builder?planId=${plan.id}`}>
-                              <Button variant="ghost" size="icon">
-                                <Pencil className="h-4 w-4" />
-                                <span className="sr-only">Edit Plan</span>
-                              </Button>
-                            </Link>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Edit Plan</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <AlertDialog>
+          {/* Desktop table */}
+          <div className="overflow-x-auto hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Plan Name</TableHead>
+                  <TableHead>Target</TableHead>
+                  <TableHead>Created By</TableHead>
+                  <TableHead>Date Created</TableHead>
+                  <TableHead className="text-center">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {dietPlans.length > 0 ? dietPlans.map(plan => (
+                  <TableRow key={plan.id}>
+                    <TableCell className="font-medium">{plan.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{plan.target}</Badge>
+                    </TableCell>
+                    <TableCell>{plan.createdByName}</TableCell>
+                    <TableCell>{plan.created}</TableCell>
+                    <TableCell>
+                      <TooltipProvider>
+                        <div className="flex items-center justify-center gap-2">
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setPlanToDelete(plan)}>
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                  <span className="sr-only">Delete plan</span>
-                                </Button>
-                              </AlertDialogTrigger>
+                              <Button variant="ghost" size="icon" onClick={() => openAssignDialog(plan)}>
+                                <Users className="h-4 w-4" />
+                                <span className="sr-only">Assign Plan</span>
+                              </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Delete Plan</p>
+                              <p>Assign to Customers</p>
                             </TooltipContent>
                           </Tooltip>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the {plan.name} diet plan.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel onClick={() => setPlanToDelete(null)}>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleDeletePlan}>Continue</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link href={`/admin/diet-plans/builder?planId=${plan.id}`}>
+                                <Button variant="ghost" size="icon">
+                                  <Pencil className="h-4 w-4" />
+                                  <span className="sr-only">Edit Plan</span>
+                                </Button>
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Edit Plan</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <AlertDialog>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" onClick={() => setPlanToDelete(plan)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                    <span className="sr-only">Delete plan</span>
+                                  </Button>
+                                </AlertDialogTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Delete Plan</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the {plan.name} diet plan.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setPlanToDelete(null)}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDeletePlan}>Continue</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TooltipProvider>
+                    </TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">No diet plans found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile card grid */}
+          <div className="grid gap-3 md:hidden">
+            {dietPlans.length > 0 ? dietPlans.map(plan => (
+              <Card key={plan.id} className="border shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between flex-wrap gap-3">
+                    <div>
+                      <CardTitle className="text-base">{plan.name}</CardTitle>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline">{plan.target}</Badge>
                       </div>
-                    </TooltipProvider>
-                  </TableCell>
-                </TableRow>
-              )) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">No diet plans found.</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" onClick={() => openAssignDialog(plan)}>
+                        <Users className="h-4 w-4" />
+                        <span className="sr-only">Assign Plan</span>
+                      </Button>
+                      <Link href={`/admin/diet-plans/builder?planId=${plan.id}`}>
+                        <Button variant="ghost" size="icon">
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit Plan</span>
+                        </Button>
+                      </Link>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => setPlanToDelete(plan)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <span className="sr-only">Delete plan</span>
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the {plan.name} diet plan.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setPlanToDelete(null)}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeletePlan}>Continue</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-sm text-muted-foreground space-y-0.5">
+                    <p>By: {plan.createdByName}</p>
+                    <p>Created: {plan.created}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )) : (
+              <p className="text-center text-muted-foreground py-4">No diet plans found.</p>
+            )}
+          </div>
         </CardContent>
       </Card>
 

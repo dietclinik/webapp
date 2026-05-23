@@ -109,6 +109,8 @@ export default function CorporateCustomersPage() {
         </div>
       </CardHeader>
       <CardContent>
+        {/* Table — md and above */}
+        <div className="overflow-x-auto hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -183,6 +185,66 @@ export default function CorporateCustomersPage() {
             )}
           </TableBody>
         </Table>
+        </div>
+
+        {/* Cards — below md */}
+        <div className="grid gap-3 md:hidden">
+          {loading ? (
+            [...Array(3)].map((_, i) => (
+              <div key={i} className="rounded-lg border p-4 space-y-2">
+                <Skeleton className="h-5 w-36" />
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ))
+          ) : customers.length > 0 ? (
+            customers.map(customer => (
+              <div key={customer.id} className="rounded-lg border p-4">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <p className="font-medium">{customer.name}</p>
+                    <p className="text-xs text-muted-foreground">{customer.email}</p>
+                    <p className="text-xs text-muted-foreground">{customer.mobile}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Link href={`/corporate/customers/view/${customer.id}`}>
+                      <Button variant="ghost" size="icon">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => setCustomerToDelete(customer)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete {customer.name}'s data and authentication record.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel onClick={() => setCustomerToDelete(null)}>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDeleteCustomer}>Continue</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Badge variant={customer.status === 'Active' ? 'success' : 'secondary'}>{customer.status}</Badge>
+                  <span className="text-xs text-muted-foreground">
+                    Ends: {customer.subscriptionEndDate ? format(customer.subscriptionEndDate.toDate(), 'PP') : 'N/A'}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-muted-foreground py-6">You have not added any customers yet.</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

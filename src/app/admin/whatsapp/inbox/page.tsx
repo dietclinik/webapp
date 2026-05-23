@@ -28,7 +28,7 @@ export default function WhatsAppInboxPage() {
             </div>
 
             <div className="flex items-center gap-4">
-                <div className="relative flex-1">
+                <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input placeholder="Search messages or contacts..." className="pl-8" />
                 </div>
@@ -47,6 +47,7 @@ export default function WhatsAppInboxPage() {
                             <p className="text-muted-foreground">When customers message you, they'll appear here.</p>
                         </div>
                     ) : (
+                        <div className="overflow-x-auto hidden md:block">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -60,6 +61,7 @@ export default function WhatsAppInboxPage() {
                                 {/* Inbox items will go here */}
                             </TableBody>
                         </Table>
+                        </div>
                     )}
                 </CardContent>
             </Card>

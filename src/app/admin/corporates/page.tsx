@@ -169,6 +169,8 @@ export default function AllCorporatesPage() {
             </div>
         </CardHeader>
         <CardContent>
+            {/* Desktop table */}
+            <div className="overflow-x-auto hidden md:block">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -258,6 +260,69 @@ export default function AllCorporatesPage() {
                     )}
                 </TableBody>
             </Table>
+            </div>
+
+            {/* Mobile card grid */}
+            <div className="grid gap-3 md:hidden">
+              {filteredCorporates.length > 0 ? filteredCorporates.map((corporate) => (
+                <Card key={corporate.id} className="border shadow-sm">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between flex-wrap gap-3">
+                      <div>
+                        <div className="font-semibold text-sm">{corporate.name}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{corporate.email}</div>
+                        {corporate.mobile && <div className="text-xs text-muted-foreground">{corporate.mobile}</div>}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Link href={`/admin/corporates/view/${corporate.id}`}>
+                          <Button variant="ghost" size="icon">
+                            <Users className="h-4 w-4" />
+                            <span className="sr-only">View Customers & Details</span>
+                          </Button>
+                        </Link>
+                        <Link href={`/admin/corporates/edit/${corporate.id}`}>
+                          <Button variant="ghost" size="icon">
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit corporate</span>
+                          </Button>
+                        </Link>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={() => setCorporateToDelete(corporate)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                              <span className="sr-only">Delete corporate</span>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete the corporate account and its associated user account. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setCorporateToDelete(null)}>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDeleteCorporate}>Continue</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-3 pt-0">
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      <Badge variant={corporate.status === 'Active' ? 'success' : 'secondary'}>{corporate.status || 'N/A'}</Badge>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Users className="h-3.5 w-3.5" />
+                      <span>{corporate.customerCount} customers</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )) : (
+                <p className="text-center text-sm text-muted-foreground py-8">No corporate partners found.</p>
+              )}
+            </div>
         </CardContent>
     </Card>
   );

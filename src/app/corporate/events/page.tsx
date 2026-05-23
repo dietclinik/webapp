@@ -131,12 +131,12 @@ export default function CorporateEventsPage() {
   return (
     <Card>
         <CardHeader>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                     <CardTitle className="flex items-center gap-2"><CalendarPlus className="h-6 w-6" /> My Events</CardTitle>
                     <CardDescription>Manage events for your employees.</CardDescription>
                 </div>
-                 <Link href="/corporate/events/add">
+                 <Link href="/corporate/events/add" className="shrink-0">
                     <Button size="sm" className="h-10 gap-1">
                         <PlusCircle className="h-4 w-4" />
                         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Create Event</span>
@@ -145,6 +145,8 @@ export default function CorporateEventsPage() {
             </div>
         </CardHeader>
         <CardContent>
+            {/* Table — md and above */}
+            <div className="overflow-x-auto hidden md:block">
              <Table>
                 <TableHeader>
                     <TableRow>
@@ -214,6 +216,64 @@ export default function CorporateEventsPage() {
                     )}
                 </TableBody>
             </Table>
+            </div>
+
+            {/* Cards — below md */}
+            <div className="grid gap-3 md:hidden">
+                {loading ? (
+                    [...Array(3)].map((_, i) => (
+                        <div key={i} className="rounded-lg border p-4 space-y-2">
+                            <div className="h-5 w-full animate-pulse bg-muted rounded" />
+                            <div className="h-4 w-3/4 animate-pulse bg-muted rounded" />
+                        </div>
+                    ))
+                ) : events.length > 0 ? (
+                    events.map((event) => (
+                        <div key={event.id} className="rounded-lg border p-4">
+                            <div className="flex items-start justify-between gap-3 flex-wrap">
+                                <div>
+                                    <p className="font-medium">{event.title}</p>
+                                    <p className="text-xs text-muted-foreground">{format(event.eventTime.toDate(), 'PPP p')}</p>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                    <Link href={`/corporate/events/scoreboard/${event.id}`}>
+                                        <Button variant="ghost" size="icon"><Trophy className="h-4 w-4"/></Button>
+                                    </Link>
+                                    <Link href={`/corporate/events/view/${event.id}`}>
+                                        <Button variant="ghost" size="icon"><Eye className="h-4 w-4"/></Button>
+                                    </Link>
+                                    <Link href={`/corporate/events/edit/${event.id}`}>
+                                        <Button variant="ghost" size="icon"><Pencil className="h-4 w-4"/></Button>
+                                    </Link>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" onClick={() => setEventToDelete(event)}>
+                                                <Trash2 className="h-4 w-4 text-destructive"/>
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>This action will permanently delete the event "{event.title}". This cannot be undone.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel onClick={() => setEventToDelete(null)}>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleDeleteEvent}>Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            </div>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                                <Badge variant={event.status === 'Upcoming' ? 'default' : 'secondary'}>{event.status}</Badge>
+                                <span className="text-xs text-muted-foreground">{event.registrationsCount} registrations</span>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-center text-muted-foreground py-6">No events created yet.</p>
+                )}
+            </div>
         </CardContent>
     </Card>
   );

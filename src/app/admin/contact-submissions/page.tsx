@@ -138,68 +138,111 @@ export default function ContactSubmissionsPage() {
             {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
+          <>
+          {/* Desktop Table */}
+          <div className="overflow-x-auto hidden md:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                    <TableHead>S.No</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>From</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Received</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>S.No</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>From</TableHead>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Received</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-            </TableHeader>
-            <TableBody>
+              </TableHeader>
+              <TableBody>
                 {submissions.length > 0 ? submissions.map((submission, index) => (
-                    <TableRow key={submission.id} className={!submission.isRead ? 'font-bold' : ''}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>
-                            {submission.isRead ? (
-                                <Badge variant="secondary">Viewed</Badge>
-                            ) : (
-                                <Badge variant="success">New</Badge>
-                            )}
-                        </TableCell>
-                        <TableCell>
-                            <div>{submission.name}</div>
-                            <div className="text-xs text-muted-foreground font-normal">{submission.email}</div>
-                        </TableCell>
-                        <TableCell>{submission.subject}</TableCell>
-                        <TableCell className="font-normal">
-                             {submission.createdAt ? formatDistanceToNow(submission.createdAt.toDate(), { addSuffix: true }) : 'just now'}
-                        </TableCell>
-                        <TableCell className="text-right">
-                           <Button variant="ghost" size="icon" onClick={() => handleViewClick(submission)}>
-                               <Eye className="h-4 w-4" />
-                           </Button>
-                           <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" onClick={() => setSubmissionToDelete(submission)}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>This will permanently delete this message.</AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel onClick={() => setSubmissionToDelete(null)}>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                           </AlertDialog>
-                        </TableCell>
-                    </TableRow>
+                  <TableRow key={submission.id} className={!submission.isRead ? 'font-bold' : ''}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>
+                      {submission.isRead ? <Badge variant="secondary">Viewed</Badge> : <Badge variant="success">New</Badge>}
+                    </TableCell>
+                    <TableCell>
+                      <div>{submission.name}</div>
+                      <div className="text-xs text-muted-foreground font-normal">{submission.email}</div>
+                    </TableCell>
+                    <TableCell>{submission.subject}</TableCell>
+                    <TableCell className="font-normal">
+                      {submission.createdAt ? formatDistanceToNow(submission.createdAt.toDate(), { addSuffix: true }) : 'just now'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => handleViewClick(submission)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => setSubmissionToDelete(submission)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>This will permanently delete this message.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setSubmissionToDelete(null)}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
                 )) : (
-                    <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
-                            No contact submissions yet.
-                        </TableCell>
-                    </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-12">No contact submissions yet.</TableCell>
+                  </TableRow>
                 )}
-            </TableBody>
-          </Table>
+              </TableBody>
+            </Table>
+          </div>
+          {/* Mobile Cards */}
+          <div className="grid gap-3 md:hidden">
+            {submissions.length > 0 ? submissions.map(submission => (
+              <Card key={submission.id} className={!submission.isRead ? 'border-primary/40 bg-primary/5' : ''}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold">{submission.name}</p>
+                        {submission.isRead ? <Badge variant="secondary">Viewed</Badge> : <Badge variant="success">New</Badge>}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{submission.email}</p>
+                      <p className="text-sm font-medium mt-1">{submission.subject}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{submission.createdAt ? formatDistanceToNow(submission.createdAt.toDate(), { addSuffix: true }) : 'just now'}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleViewClick(submission)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSubmissionToDelete(submission)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>This will permanently delete this message.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setSubmissionToDelete(null)}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )) : (
+              <p className="text-center text-muted-foreground py-12">No contact submissions yet.</p>
+            )}
+          </div>
+          </>
         )}
       </CardContent>
     </Card>

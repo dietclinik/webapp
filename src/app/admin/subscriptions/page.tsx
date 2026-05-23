@@ -272,101 +272,168 @@ export default function SubscriptionsPage() {
   const renderPlanTable = (planFor: ("customer" | "vendor" | "corporate" | "vendor_customer")[]) => {
     const filteredPlans = plans.filter(p => planFor.includes(p.planFor || 'customer'));
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Plan Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Show on Homepage</TableHead>
-                    <TableHead>Partner Visible</TableHead>
-                    <TableHead>Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {filteredPlans.length > 0 ? filteredPlans.map(plan => (
-                    <TableRow key={plan.id}>
-                    <TableCell className="font-medium">{plan.name}</TableCell>
-                    <TableCell><Badge variant="outline" className="capitalize">{plan.planType}</Badge></TableCell>
-                    <TableCell>
-                    <Switch
-                        checked={plan.showOnFrontend}
-                        onCheckedChange={() => toggleShowOnFrontend(plan.id, plan.showOnFrontend ?? true)}
-                    />
-                    </TableCell>
-                    <TableCell>
-                    <Switch
-                        checked={plan.vendorVisible}
-                        onCheckedChange={() => togglePartnerVisible(plan.id, plan.vendorVisible ?? false)}
-                    />
-                    </TableCell>
-                    <TableCell>
-                    <TooltipProvider>
-                        <div className="flex items-center gap-2">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                     <Link href={`/admin/subscriptions/edit/${plan.id}`}>
-                                        <Button variant="ghost" size="icon">
-                                            <Pencil className="h-4 w-4" />
-                                            <span className="sr-only">Edit plan</span>
-                                        </Button>
-                                     </Link>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Edit Plan</p>
-                                </TooltipContent>
-                            </Tooltip>
-                            <AlertDialog>
+        <>
+          {/* Desktop table */}
+          <div className="overflow-x-auto hidden md:block">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Plan Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Show on Homepage</TableHead>
+                        <TableHead>Partner Visible</TableHead>
+                        <TableHead>Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {filteredPlans.length > 0 ? filteredPlans.map(plan => (
+                        <TableRow key={plan.id}>
+                        <TableCell className="font-medium">{plan.name}</TableCell>
+                        <TableCell><Badge variant="outline" className="capitalize">{plan.planType}</Badge></TableCell>
+                        <TableCell>
+                        <Switch
+                            checked={plan.showOnFrontend}
+                            onCheckedChange={() => toggleShowOnFrontend(plan.id, plan.showOnFrontend ?? true)}
+                        />
+                        </TableCell>
+                        <TableCell>
+                        <Switch
+                            checked={plan.vendorVisible}
+                            onCheckedChange={() => togglePartnerVisible(plan.id, plan.vendorVisible ?? false)}
+                        />
+                        </TableCell>
+                        <TableCell>
+                        <TooltipProvider>
+                            <div className="flex items-center gap-2">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <AlertDialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" onClick={() => setPlanToDelete(plan)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                                <span className="sr-only">Delete plan</span>
+                                         <Link href={`/admin/subscriptions/edit/${plan.id}`}>
+                                            <Button variant="ghost" size="icon">
+                                                <Pencil className="h-4 w-4" />
+                                                <span className="sr-only">Edit plan</span>
                                             </Button>
-                                        </AlertDialogTrigger>
+                                         </Link>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p>Delete Plan</p>
+                                        <p>Edit Plan</p>
                                     </TooltipContent>
                                 </Tooltip>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This action cannot be undone. This will permanently delete the {plan.name} plan.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel onClick={() => setPlanToDelete(null)}>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleDeletePlan}>Continue</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
-                    </TooltipProvider>
-                    </TableCell>
-                </TableRow>
-                )) : (
-                <TableRow>
-                    <TableCell colSpan={7} className="text-center">No plans found for this category.</TableCell>
-                </TableRow>
-                )}
-            </TableBody>
-        </Table>
+                                <AlertDialog>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" onClick={() => setPlanToDelete(plan)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                    <span className="sr-only">Delete plan</span>
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Delete Plan</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently delete the {plan.name} plan.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel onClick={() => setPlanToDelete(null)}>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDeletePlan}>Continue</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        </TooltipProvider>
+                        </TableCell>
+                    </TableRow>
+                    )) : (
+                    <TableRow>
+                        <TableCell colSpan={7} className="text-center">No plans found for this category.</TableCell>
+                    </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile card grid */}
+          <div className="grid gap-3 md:hidden">
+            {filteredPlans.length > 0 ? filteredPlans.map(plan => (
+              <Card key={plan.id} className="border shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between flex-wrap gap-3">
+                    <div>
+                      <CardTitle className="text-base">{plan.name}</CardTitle>
+                      <Badge variant="outline" className="capitalize mt-1">{plan.planType}</Badge>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Link href={`/admin/subscriptions/edit/${plan.id}`}>
+                        <Button variant="ghost" size="icon">
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit plan</span>
+                        </Button>
+                      </Link>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => setPlanToDelete(plan)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <span className="sr-only">Delete plan</span>
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the {plan.name} plan.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setPlanToDelete(null)}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeletePlan}>Continue</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Show on Homepage</span>
+                    <Switch
+                      checked={plan.showOnFrontend}
+                      onCheckedChange={() => toggleShowOnFrontend(plan.id, plan.showOnFrontend ?? true)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Partner Visible</span>
+                    <Switch
+                      checked={plan.vendorVisible}
+                      onCheckedChange={() => togglePartnerVisible(plan.id, plan.vendorVisible ?? false)}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )) : (
+              <p className="text-center text-muted-foreground py-4">No plans found for this category.</p>
+            )}
+          </div>
+        </>
     );
   };
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
                 <CardTitle>Subscription Plans</CardTitle>
                 <CardDescription>
                 Add, edit, and manage subscription plans for customers and partners.
                 </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                          <Button size="sm" className="h-8 gap-1">
@@ -567,7 +634,7 @@ export default function SubscriptionsPage() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="customer">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="flex w-full overflow-x-auto md:grid md:grid-cols-4">
                 <TabsTrigger value="customer">Customer Plans</TabsTrigger>
                 <TabsTrigger value="vendor_customer">Partner's Customer Plans</TabsTrigger>
                 <TabsTrigger value="vendor">Partner Plans</TabsTrigger>

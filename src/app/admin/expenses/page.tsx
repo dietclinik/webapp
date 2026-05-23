@@ -153,7 +153,7 @@ export default function ExpensesPage() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
                 <CardTitle>Expenses</CardTitle>
                 <CardDescription>
@@ -162,7 +162,7 @@ export default function ExpensesPage() {
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                     <Button size="sm" className="h-8 gap-1">
+                     <Button size="sm" className="h-8 gap-1 shrink-0">
                         <PlusCircle className="h-3.5 w-3.5" />
                         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                         Add Expense
@@ -232,53 +232,102 @@ export default function ExpensesPage() {
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead className="text-center">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {expenses.length > 0 ? expenses.map(expense => (
-                <TableRow key={expense.id}>
-                <TableCell>{format(expense.date.toDate(), "PPP")}</TableCell>
-                <TableCell className="font-medium">{expense.category}</TableCell>
-                <TableCell className="text-muted-foreground">{expense.description}</TableCell>
-                <TableCell className="text-right">₹{expense.amount.toFixed(2)}</TableCell>
-                <TableCell className="text-center">
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => setExpenseToDelete(expense)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                                <span className="sr-only">Delete expense</span>
-                            </Button>
-                        </AlertDialogTrigger>
-                         <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete this expense record.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel onClick={() => setExpenseToDelete(null)}>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDeleteExpense}>Continue</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </TableCell>
-              </TableRow>
-            )) : (
+        {/* Desktop table */}
+        <div className="overflow-x-auto hidden md:block">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="text-center">No expenses found.</TableCell>
+                <TableHead>Date</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {expenses.length > 0 ? expenses.map(expense => (
+                  <TableRow key={expense.id}>
+                  <TableCell>{format(expense.date.toDate(), "PPP")}</TableCell>
+                  <TableCell className="font-medium">{expense.category}</TableCell>
+                  <TableCell className="text-muted-foreground">{expense.description}</TableCell>
+                  <TableCell className="text-right">₹{expense.amount.toFixed(2)}</TableCell>
+                  <TableCell className="text-center">
+                      <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" onClick={() => setExpenseToDelete(expense)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                  <span className="sr-only">Delete expense</span>
+                              </Button>
+                          </AlertDialogTrigger>
+                           <AlertDialogContent>
+                              <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                      This action cannot be undone. This will permanently delete this expense record.
+                                  </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                  <AlertDialogCancel onClick={() => setExpenseToDelete(null)}>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleDeleteExpense}>Continue</AlertDialogAction>
+                              </AlertDialogFooter>
+                          </AlertDialogContent>
+                      </AlertDialog>
+                  </TableCell>
+                </TableRow>
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">No expenses found.</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Mobile card grid */}
+        <div className="grid gap-3 md:hidden">
+          {expenses.length > 0 ? expenses.map(expense => (
+            <Card key={expense.id} className="border shadow-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between flex-wrap gap-3">
+                  <div>
+                    <CardTitle className="text-base">{expense.category}</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-0.5">{format(expense.date.toDate(), "PPP")}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="font-semibold text-sm">₹{expense.amount.toFixed(2)}</span>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => setExpenseToDelete(expense)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <span className="sr-only">Delete expense</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete this expense record.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel onClick={() => setExpenseToDelete(null)}>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDeleteExpense}>Continue</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardHeader>
+              {expense.description && (
+                <CardContent className="pt-0">
+                  <p className="text-sm text-muted-foreground">{expense.description}</p>
+                </CardContent>
+              )}
+            </Card>
+          )) : (
+            <p className="text-center text-muted-foreground py-4">No expenses found.</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

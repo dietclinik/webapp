@@ -204,6 +204,8 @@ export default function StaffPage() {
         </div>
       </CardHeader>
       <CardContent>
+        {/* Desktop table */}
+        <div className="overflow-x-auto hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -324,6 +326,83 @@ export default function StaffPage() {
             )}
           </TableBody>
         </Table>
+        </div>
+
+        {/* Mobile card grid */}
+        <div className="grid gap-3 md:hidden">
+          {sortedAndFilteredStaff.length > 0 ? sortedAndFilteredStaff.map(s => (
+            <Card key={s.id} className="border shadow-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={s.photoURL} />
+                      <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-semibold text-sm">{s.name}</div>
+                      <div className="text-xs text-muted-foreground">{s.email}</div>
+                      {s.mobile && <div className="text-xs text-muted-foreground">{s.mobile}</div>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Link href={`/admin/staff/view/${s.id}`}>
+                      <Button variant="ghost" size="icon">
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">View staff</span>
+                      </Button>
+                    </Link>
+                    <Link href={`/admin/staff/edit/${s.id}`}>
+                      <Button variant="ghost" size="icon">
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit staff</span>
+                      </Button>
+                    </Link>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => setStaffToDelete(s)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <span className="sr-only">Delete staff</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action will permanently delete {s.name}'s data and authentication record. It will also unassign them from any customers. This cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel onClick={() => setStaffToDelete(null)}>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDeleteStaff}>Continue</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pb-3 pt-0">
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" />
+                    <span>{s.assignedCustomerCount} assigned customers</span>
+                  </div>
+                  <div>Experience: {s.experience} years</div>
+                  {s.resumeURL && (
+                    <a href={s.resumeURL} target="_blank" rel="noopener noreferrer" className="inline-block mt-1">
+                      <Button variant="outline" size="sm">
+                        <Download className="mr-2 h-3.5 w-3.5" />
+                        Resume
+                      </Button>
+                    </a>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )) : (
+            <p className="text-center text-sm text-muted-foreground py-8">No staff found.</p>
+          )}
+        </div>
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">

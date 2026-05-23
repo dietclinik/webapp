@@ -65,6 +65,8 @@ export default function MyCustomersPage() {
         <CardDescription>Manage and monitor the progress of the customers assigned to you.</CardDescription>
       </CardHeader>
       <CardContent>
+        {/* Table — md and above */}
+        <div className="overflow-x-auto hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -113,6 +115,44 @@ export default function MyCustomersPage() {
             )}
           </TableBody>
         </Table>
+        </div>
+
+        {/* Cards — below md */}
+        <div className="grid gap-3 md:hidden">
+          {loading ? (
+            [...Array(3)].map((_, i) => (
+              <div key={i} className="rounded-lg border p-4 space-y-2">
+                <Skeleton className="h-5 w-36" />
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ))
+          ) : customers.length > 0 ? (
+            customers.map(customer => (
+              <div key={customer.id} className="rounded-lg border p-4">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <p className="font-medium">{customer.name}</p>
+                    <p className="text-xs text-muted-foreground">{customer.email}</p>
+                  </div>
+                  <Link href={`/staff/my-customers/view/${customer.id}`} className="shrink-0">
+                    <Button variant="ghost" size="icon">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Badge variant={customer.status === 'Active' ? 'success' : 'secondary'}>{customer.status}</Badge>
+                  <span className="text-xs text-muted-foreground">
+                    Ends: {customer.subscriptionEndDate ? format(customer.subscriptionEndDate.toDate(), 'PP') : 'N/A'}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-muted-foreground py-6">You have no customers assigned.</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

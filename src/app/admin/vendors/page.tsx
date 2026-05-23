@@ -178,6 +178,8 @@ export default function VendorsPage() {
         </div>
       </CardHeader>
       <CardContent>
+        {/* Desktop table */}
+        <div className="overflow-x-auto hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -288,6 +290,72 @@ export default function VendorsPage() {
             )}
           </TableBody>
         </Table>
+        </div>
+
+        {/* Mobile card grid */}
+        <div className="grid gap-3 md:hidden">
+          {sortedAndFilteredVendors.length > 0 ? sortedAndFilteredVendors.map((vendor) => (
+            <Card key={vendor.id} className="border shadow-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between flex-wrap gap-3">
+                  <div>
+                    <div className="font-semibold text-sm">{vendor.name}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{vendor.email}</div>
+                    {vendor.mobile && <div className="text-xs text-muted-foreground">{vendor.mobile}</div>}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Link href={`/admin/vendors/view/${vendor.id}`}>
+                      <Button variant="ghost" size="icon">
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">View vendor</span>
+                      </Button>
+                    </Link>
+                    <Link href={`/admin/vendors/edit/${vendor.id}`}>
+                      <Button variant="ghost" size="icon">
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit vendor</span>
+                      </Button>
+                    </Link>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => setVendorToDelete(vendor)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <span className="sr-only">Delete vendor</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete the vendor and its associated user account. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel onClick={() => setVendorToDelete(null)}>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDeleteVendor}>Continue</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pb-3 pt-0">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <Badge variant={vendor.status === 'Active' ? 'success' : 'secondary'}>{vendor.status || 'N/A'}</Badge>
+                  <Badge variant={vendor.paymentStatus === 'Paid' ? 'success' : vendor.paymentStatus === 'Failed' ? 'destructive' : 'secondary'}>
+                    {vendor.paymentStatus || 'N/A'}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Users className="h-3.5 w-3.5" />
+                  <span>{vendor.customerCount} customers</span>
+                </div>
+              </CardContent>
+            </Card>
+          )) : (
+            <p className="text-center text-sm text-muted-foreground py-8">No vendors found.</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
