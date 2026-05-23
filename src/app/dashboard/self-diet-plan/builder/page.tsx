@@ -130,7 +130,7 @@ const MealEntryDialog = ({ open, onClose, form, mealIndex, handleFetchNutrition,
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-2xl flex flex-col max-h-[90vh]">
+      <DialogContent className="max-w-2xl flex flex-col max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>
             <div className="flex items-center gap-3 flex-wrap">
@@ -163,7 +163,7 @@ const MealEntryDialog = ({ open, onClose, form, mealIndex, handleFetchNutrition,
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-2">
+        <ScrollArea className="flex-1 min-h-0 pr-2">
           <div className="space-y-3 py-1">
             {foodFields.map((food, foodIndex) => (
               <FoodItemRow
