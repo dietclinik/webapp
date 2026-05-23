@@ -311,7 +311,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <ThemeToggle />
           <UserNav userType="customer" />
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:px-6 lg:py-6 pb-20 md:pb-6">
+        <main className="flex flex-1 flex-col gap-4 px-2 py-4 lg:gap-6 lg:px-6 lg:py-6 pb-20 md:pb-6">
           <PageAccessWrapper>{children}</PageAccessWrapper>
         </main>
         <footer className="hidden md:flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">

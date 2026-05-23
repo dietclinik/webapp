@@ -337,7 +337,7 @@ function CorporateAuthWrapper({ children }: { children: ReactNode }) {
                 {userId && <NotificationsPopover userId={userId} />}
                 <UserNav userType="corporate" />
                 </header>
-                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:px-6 lg:py-6">
+                <main className="flex flex-1 flex-col gap-4 px-2 py-4 lg:gap-6 lg:px-6 lg:py-6">
                 {children}
                 </main>
             </SidebarInset>

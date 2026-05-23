@@ -312,7 +312,7 @@ function PartnerAuthWrapper({ children }: { children: ReactNode }) {
                 {userId && <NotificationsPopover userId={userId} />}
                 <UserNav userType="partner" />
                 </header>
-                <main className="relative flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+                <main className="relative flex flex-1 flex-col gap-4 px-2 py-4 lg:gap-6 lg:p-6">
                     <PageAccessWrapper>
                       {children}
                     </PageAccessWrapper>
