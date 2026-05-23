@@ -152,12 +152,12 @@ export default function CorporateLoginPage() {
           <p className="text-sm text-muted-foreground">
             App Developed By{" "}
             <a
-              href="https://catchytechnologies.com"
+              href="https://voryntotechnologies.com"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary no-underline"
             >
-              Catchy Technologies
+              Vorynto Pvt. Ltd.
             </a>
           </p>
         </nav>

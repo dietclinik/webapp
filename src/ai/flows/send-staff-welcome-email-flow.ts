@@ -76,7 +76,7 @@ const createStaffWelcomeEmailTemplate = (name: string, email: string, password: 
         </div>
         <div class="footer">
             <p>&copy; ${new Date().getFullYear()} Diet Clinik. All rights reserved.</p>
-            <p>App Developed By <a href="https://catchytechnologies.com" target="_blank" rel="noopener noreferrer" style="color: #FFC107; text-decoration: none;">Catchy Technologies</a></p>
+            <p>App Developed By <a href="https://voryntotechnologies.com" target="_blank" rel="noopener noreferrer" style="color: #FFC107; text-decoration: none;">Vorynto Pvt. Ltd.</a></p>
         </div>
     </div>
 </body>
