@@ -1,7 +1,7 @@
 
 "use client";
 
-import { PlusCircle, Search, Users, Pencil, Trash2 } from "lucide-react";
+import { PlusCircle, Users, Pencil, Trash2 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { collection, getDocs, deleteDoc, doc, query, orderBy } from "firebase/firestore";
@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MobileSearch } from "@/components/ui/mobile-search";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -149,16 +150,7 @@ export default function AllCorporatesPage() {
                     <CardDescription>Manage all your corporate partners.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                        type="search"
-                        placeholder="Search corporates..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full sm:w-64 pl-8"
-                        />
-                    </div>
+                    <MobileSearch value={searchQuery} onChange={setSearchQuery} placeholder="Search corporates..." className="w-64" />
                     <Link href="/admin/corporates/add">
                     <Button size="sm" className="h-10 gap-1">
                         <PlusCircle className="h-4 w-4" />

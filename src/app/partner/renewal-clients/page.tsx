@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Eye, Search } from "lucide-react";
+import { Eye } from "lucide-react";
+import { MobileSearch } from "@/components/ui/mobile-search";
 import { format, differenceInDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -117,15 +118,7 @@ export default function PartnerRenewalClientsPage() {
                 Customers whose subscriptions have expired — {customers.length} total.
               </CardDescription>
             </div>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, email, mobile..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8"
-              />
-            </div>
+            <MobileSearch value={search} onChange={setSearch} placeholder="Search by name, email, mobile..." />
           </div>
         </CardHeader>
         <CardContent>

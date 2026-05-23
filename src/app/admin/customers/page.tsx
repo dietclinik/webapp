@@ -53,6 +53,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Input } from "@/components/ui/input";
+import { MobileSearch } from "@/components/ui/mobile-search";
 import { deleteCustomer } from "@/ai/flows/delete-customer-flow";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -246,12 +247,7 @@ export default function CustomersPage() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                 <Input 
-                    placeholder="Search customers..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full sm:w-64"
-                />
+                 <MobileSearch value={searchQuery} onChange={setSearchQuery} placeholder="Search customers..." className="w-64" />
                  <Select value={selectedVendor} onValueChange={setSelectedVendor}>
                     <SelectTrigger className="w-full sm:w-48">
                         <SelectValue placeholder="Filter by vendor..." />

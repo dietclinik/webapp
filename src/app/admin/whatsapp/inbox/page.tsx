@@ -6,11 +6,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, MessageCircle } from 'lucide-react';
+import { Loader2, MessageCircle } from 'lucide-react';
+import { MobileSearch } from "@/components/ui/mobile-search";
 
 export default function WhatsAppInboxPage() {
     const [loading, setLoading] = React.useState(true);
     const [messages, setMessages] = React.useState<any[]>([]);
+    const [search, setSearch] = React.useState("");
 
     React.useEffect(() => {
         // Mocking for now, will connect to API
@@ -28,10 +30,7 @@ export default function WhatsAppInboxPage() {
             </div>
 
             <div className="flex items-center gap-4">
-                <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search messages or contacts..." className="pl-8" />
-                </div>
+                <MobileSearch value={search} onChange={setSearch} placeholder="Search messages or contacts..." />
             </div>
 
             <Card>

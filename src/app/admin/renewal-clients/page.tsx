@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Eye, Search, ArrowUpDown } from "lucide-react";
+import { Eye, ArrowUpDown } from "lucide-react";
+import { MobileSearch } from "@/components/ui/mobile-search";
 import { format, differenceInDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -167,15 +168,7 @@ export default function AdminRenewalClientsPage() {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, email, mobile..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8"
-              />
-            </div>
+            <MobileSearch value={search} onChange={setSearch} placeholder="Search by name, email, mobile..." />
             <Select value={vendorFilter} onValueChange={setVendorFilter}>
               <SelectTrigger className="w-full sm:w-52">
                 <SelectValue placeholder="Filter by partner" />

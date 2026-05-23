@@ -6,10 +6,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, FileText, Download } from 'lucide-react';
+import { Loader2, FileText, Download } from 'lucide-react';
+import { MobileSearch } from "@/components/ui/mobile-search";
 
 export default function WhatsAppLogsPage() {
     const [loading, setLoading] = React.useState(true);
+    const [search, setSearch] = React.useState("");
 
     React.useEffect(() => {
         setTimeout(() => setLoading(false), 800);
@@ -29,10 +31,7 @@ export default function WhatsAppLogsPage() {
             </div>
 
             <div className="flex items-center gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search logs by phone or name..." className="pl-8" />
-                </div>
+                <MobileSearch value={search} onChange={setSearch} placeholder="Search logs by phone or name..." />
             </div>
 
             <Card>

@@ -56,6 +56,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Input } from "@/components/ui/input";
+import { MobileSearch } from "@/components/ui/mobile-search";
 import { deleteStaff } from "@/ai/flows/delete-staff-flow";
 
 type Staff = {
@@ -186,12 +187,7 @@ export default function StaffPage() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                 <Input 
-                    placeholder="Search staff..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full sm:w-64"
-                />
+                 <MobileSearch value={searchQuery} onChange={setSearchQuery} placeholder="Search staff..." className="w-64" />
                 <Link href="/admin/staff/add">
                     <Button size="sm" className="h-10 gap-1">
                         <PlusCircle className="h-3.5 w-3.5" />

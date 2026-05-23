@@ -3,7 +3,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { PlusCircle, Pencil, Trash2, Search, X, CalendarIcon } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, X, CalendarIcon } from "lucide-react";
+import { MobileSearch } from "@/components/ui/mobile-search";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -168,15 +169,7 @@ export default function SelfDietLogListPage() {
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-2 pt-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by day name or date..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8"
-            />
-          </div>
+          <MobileSearch value={search} onChange={setSearch} placeholder="Search by day name or date..." />
           {/* From date */}
           <Popover>
             <PopoverTrigger asChild>

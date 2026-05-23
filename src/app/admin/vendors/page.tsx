@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MobileSearch } from "@/components/ui/mobile-search";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 
@@ -162,12 +163,7 @@ export default function VendorsPage() {
             <CardDescription>Manage your vendor vendors.</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Input
-              placeholder="Search vendors..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-64"
-            />
+            <MobileSearch value={searchQuery} onChange={setSearchQuery} placeholder="Search vendors..." className="w-64" />
             <Link href="/admin/vendors/add">
               <Button size="sm" className="h-10 gap-1">
                 <PlusCircle className="h-3.5 w-3.5" />

@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MobileSearch } from "@/components/ui/mobile-search";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { deletePartner } from "@/ai/flows/delete-partner-flow";
@@ -175,12 +176,7 @@ export default function PartnersPage() {
             <CardDescription>Manage your partners.</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Input
-              placeholder="Search partners..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-64"
-            />
+            <MobileSearch value={searchQuery} onChange={setSearchQuery} placeholder="Search partners..." className="w-64" />
             <Link href="/admin/partners/add">
               <Button size="sm" className="h-10 gap-1">
                 <PlusCircle className="h-3.5 w-3.5" />
