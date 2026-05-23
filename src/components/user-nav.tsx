@@ -106,7 +106,7 @@ export function UserNav({ userType = 'customer' }: UserNavProps) {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-muted/50">
           <Avatar className="h-8 w-8">
             <AvatarImage src={avatarSrc || undefined} alt="User avatar" data-ai-hint="user avatar" />
-            <AvatarFallback>{initials}</AvatarFallback>
+            <AvatarFallback className="bg-green-800 text-white">{initials}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
