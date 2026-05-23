@@ -4,7 +4,7 @@
 import React, { ReactNode, useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, User, Calendar, LineChart, CreditCard, Menu, Lock, Utensils, BookHeart, Video, Weight, Home, ShieldAlert, MessageSquare, Activity } from 'lucide-react';
+import { Bell, User, Calendar, LineChart, CreditCard, Menu, Lock, Utensils, BookHeart, Video, Weight, Home, ShieldAlert, MessageSquare, Activity, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
@@ -256,6 +256,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navLinks = [
     { href: "/dashboard/overview", icon: Home, label: "Dashboard" },
+    { href: "/dashboard/daily-tracker", icon: CalendarDays, label: "Daily Tracker", activePaths: ["/dashboard/daily-tracker/"] },
     { href: "/dashboard/self-diet-plan", icon: BookHeart, label: "Self Diet Plan", activePaths: ["/dashboard/self-diet-plan/builder"] },
     { href: "/dashboard/dietician-diet-plan", icon: Utensils, label: "Dietician Plan" },
     { href: "/dashboard/progress", icon: LineChart, label: "Monthly Progress" },
@@ -269,9 +270,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const bottomNavLinks = [
     { href: "/dashboard/overview", icon: Home, label: "Dashboard" },
+    { href: "/dashboard/daily-tracker", icon: CalendarDays, label: "Tracker" },
     { href: "/dashboard/self-diet-plan", icon: BookHeart, label: "Self-Diet" },
-    { href: "/dashboard/dietician-diet-plan", icon: Utensils, label: "Dietician Plan" },
-    { href: "/dashboard/daily-weight-tracking", icon: Weight, label: "Weight Tracking" },
+    { href: "/dashboard/dietician-diet-plan", icon: Utensils, label: "Diet Plan" },
   ];
 
   if (loading) {
