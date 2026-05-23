@@ -57,12 +57,12 @@ const dailyLogSchema = z.object({
 type DailyLogFormData = z.infer<typeof dailyLogSchema>;
 
 const PRESET_MEALS = [
-  { label: "Before Breakfast", time: "05:00" },
-  { label: "Breakfast", time: "08:00" },
-  { label: "Mid Morning Snacks", time: "11:00" },
-  { label: "Lunch", time: "13:00" },
-  { label: "Evening Snacks", time: "16:00" },
-  { label: "Dinner", time: "19:00" },
+  { label: "Before Breakfast", time: "05:00", outlineClass: "border-purple-400 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20", activeClass: "bg-purple-500 hover:bg-purple-600 text-white border-purple-500" },
+  { label: "Breakfast",        time: "08:00", outlineClass: "border-orange-400 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20", activeClass: "bg-orange-500 hover:bg-orange-600 text-white border-orange-500" },
+  { label: "Mid Morning Snacks", time: "11:00", outlineClass: "border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20", activeClass: "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" },
+  { label: "Lunch",            time: "13:00", outlineClass: "border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20", activeClass: "bg-green-500 hover:bg-green-600 text-white border-green-500" },
+  { label: "Evening Snacks",   time: "16:00", outlineClass: "border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/20", activeClass: "bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-500" },
+  { label: "Dinner",           time: "19:00", outlineClass: "border-rose-400 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20", activeClass: "bg-rose-500 hover:bg-rose-600 text-white border-rose-500" },
 ];
 
 const formatTime12Hour = (time24: string) => {
@@ -80,47 +80,32 @@ const FoodItemRow = ({ form, mealIndex, foodIndex, removeFood, handleFetchNutrit
   const isFetching = isFetchingNutrition === uniqueId;
 
   return (
-    <div className="p-3 border rounded-lg bg-background space-y-2">
-      <div className="grid grid-cols-2 gap-2">
-        <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.foodName`} render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-xs">Food Name</FormLabel>
-            <FormControl>
-              <Input placeholder="e.g., Oats" {...field} onBlur={() => handleFetchNutrition(mealIndex, foodIndex)} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
-        <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.quantity`} render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-xs">Quantity</FormLabel>
-            <FormControl>
-              <Input placeholder="e.g., 1 bowl" {...field} onBlur={() => handleFetchNutrition(mealIndex, foodIndex)} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
-      </div>
-      <div className="grid grid-cols-5 gap-2">
-        {(['calories', 'protein', 'fat', 'carbs', 'fibre'] as const).map(nutrient => (
-          <FormField key={nutrient} control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.${nutrient}`} render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1 text-xs text-muted-foreground capitalize">
-                {isFetching ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3 w-3" />}
-                {nutrient === 'calories' ? 'Kcal' : nutrient.charAt(0).toUpperCase() + nutrient.slice(1)}
-              </FormLabel>
-              <FormControl>
-                <Input readOnly {...field} className="bg-muted/50 text-xs h-8" />
-              </FormControl>
-            </FormItem>
-          )} />
-        ))}
-      </div>
-      <div className="flex justify-end">
-        <Button type="button" variant="ghost" size="sm" className="text-destructive h-7 text-xs" onClick={() => removeFood(foodIndex)}>
-          <Trash2 className="h-3 w-3 mr-1" /> Remove
-        </Button>
-      </div>
+    <div className="flex items-end gap-2 p-3 border rounded-lg bg-background">
+      <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.foodName`} render={({ field }) => (
+        <FormItem className="flex-1">
+          <FormLabel className="text-xs">Food Name</FormLabel>
+          <FormControl>
+            <Input placeholder="e.g., Oats" {...field} onBlur={() => handleFetchNutrition(mealIndex, foodIndex)} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
+      <FormField control={form.control} name={`meals.${mealIndex}.foodItems.${foodIndex}.quantity`} render={({ field }) => (
+        <FormItem className="w-32">
+          <FormLabel className="text-xs flex items-center gap-1">
+            Quantity
+            {isFetching && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+            {!isFetching && <BrainCircuit className="h-3 w-3 text-muted-foreground" />}
+          </FormLabel>
+          <FormControl>
+            <Input placeholder="e.g., 1 bowl" {...field} onBlur={() => handleFetchNutrition(mealIndex, foodIndex)} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
+      <Button type="button" variant="ghost" size="icon" className="text-destructive h-9 w-9 shrink-0" onClick={() => removeFood(foodIndex)}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   );
 };
@@ -139,6 +124,7 @@ const MealEntryDialog = ({ open, onClose, form, mealIndex, handleFetchNutrition,
   const totalProtein  = mealData?.foodItems?.reduce((acc: number, item: any) => acc + (Number(item.protein) || 0), 0) ?? 0;
   const totalFat      = mealData?.foodItems?.reduce((acc: number, item: any) => acc + (Number(item.fat) || 0), 0) ?? 0;
   const totalCarbs    = mealData?.foodItems?.reduce((acc: number, item: any) => acc + (Number(item.carbs) || 0), 0) ?? 0;
+  const totalFibre    = mealData?.foodItems?.reduce((acc: number, item: any) => acc + (Number(item.fibre) || 0), 0) ?? 0;
 
   if (mealIndex === null || mealIndex === undefined) return null;
 
@@ -205,7 +191,7 @@ const MealEntryDialog = ({ open, onClose, form, mealIndex, handleFetchNutrition,
         {/* Meal nutrient totals */}
         <div className="border-t pt-3 mt-1">
           <p className="text-xs text-muted-foreground font-medium mb-2">Meal Totals</p>
-          <div className="grid grid-cols-4 gap-2 text-center">
+          <div className="grid grid-cols-5 gap-2 text-center">
             <div className="bg-primary/10 rounded-lg p-2">
               <p className="text-xs text-muted-foreground">Calories</p>
               <p className="font-bold text-primary text-lg">{totalCalories.toFixed(0)}</p>
@@ -221,6 +207,10 @@ const MealEntryDialog = ({ open, onClose, form, mealIndex, handleFetchNutrition,
             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2">
               <p className="text-xs text-muted-foreground">Carbs</p>
               <p className="font-bold text-green-600 text-lg">{totalCarbs.toFixed(1)}g</p>
+            </div>
+            <div className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-2">
+              <p className="text-xs text-muted-foreground">Fibre</p>
+              <p className="font-bold text-teal-600 text-lg">{totalFibre.toFixed(1)}g</p>
             </div>
           </div>
         </div>
@@ -423,17 +413,17 @@ export default function DailyDietLogPage() {
                     <Button
                       key={meal.label}
                       type="button"
-                      variant={isAdded ? "default" : "outline"}
+                      variant="outline"
                       size="sm"
                       onClick={() => handleOpenPresetMeal(meal.label, meal.time)}
-                      className="gap-1"
+                      className={cn("gap-1 border font-medium transition-colors", isAdded ? meal.activeClass : meal.outlineClass)}
                     >
                       {isAdded ? <Pencil className="h-3 w-3" /> : <PlusCircle className="h-3 w-3" />}
                       {meal.label}
                     </Button>
                   );
                 })}
-                <Button type="button" variant="outline" size="sm" onClick={handleOpenOtherFood} className="gap-1">
+                <Button type="button" variant="outline" size="sm" onClick={handleOpenOtherFood} className="gap-1 border-slate-400 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900/20">
                   <PlusCircle className="h-3 w-3" /> Other Food
                 </Button>
               </div>
