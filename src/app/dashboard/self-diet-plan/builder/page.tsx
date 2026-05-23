@@ -30,7 +30,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const foodItemSchema = z.object({
   foodName: z.string().min(1, "Food name is required."),
@@ -130,7 +129,7 @@ const MealEntryDialog = ({ open, onClose, form, mealIndex, handleFetchNutrition,
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-2xl flex flex-col max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             <div className="flex items-center gap-3 flex-wrap">
@@ -163,7 +162,7 @@ const MealEntryDialog = ({ open, onClose, form, mealIndex, handleFetchNutrition,
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0 pr-2">
+        <div className="max-h-[45vh] overflow-y-auto -mx-1 px-1">
           <div className="space-y-3 py-1">
             {foodFields.map((food, foodIndex) => (
               <FoodItemRow
@@ -186,7 +185,7 @@ const MealEntryDialog = ({ open, onClose, form, mealIndex, handleFetchNutrition,
               <PlusCircle className="mr-2 h-4 w-4" /> Add Food Item
             </Button>
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Meal nutrient totals */}
         <div className="border-t pt-3 mt-1">
