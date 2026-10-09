@@ -47,17 +47,10 @@ const calculateNutritionFlow = ai.defineFlow(
     outputSchema: NutritionOutputSchema,
   },
   async (input) => {
-    try {
-        const { output } = await nutritionPrompt(input);
-        if (output) {
-            return output;
-        } else {
-             return { calories: 0, protein: 0, fat: 0, carbs: 0, fibre: 0 };
-        }
-    } catch(e) {
-        console.error("Error in calculateNutritionFlow:", e);
-        // Return zero values on error to prevent breaking the frontend
-        return { calories: 0, protein: 0, fat: 0, carbs: 0, fibre: 0 };
+    const { output } = await nutritionPrompt(input);
+    if (!output) {
+      throw new Error('No nutrition estimate returned for this food item.');
     }
+    return output;
   }
 );

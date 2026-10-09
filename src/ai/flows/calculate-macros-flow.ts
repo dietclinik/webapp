@@ -1,16 +1,15 @@
 
 'use server';
 /**
- * @fileOverview An AI flow to calculate recommended macronutrient intake.
+ * @fileOverview Calculates recommended macronutrient intake from calorie needs and body weight.
  *
- * - calculateMacros - A function that takes BMR, weight, height, and age to return estimated protein, carbs, fat, and fiber.
+ * - calculateMacros - A function that takes BMR/calorie needs, weight, height, and age to return estimated protein, carbs, fat, and fiber.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const MacrosInputSchema = z.object({
-  bmr: z.number().describe('The Basal Metabolic Rate of the person in kcal/day.'),
+  bmr: z.number().describe('The daily calorie needs of the person in kcal/day.'),
   weight: z.number().describe('The weight of the person in kilograms.'),
   height: z.number().describe('The height of the person in centimeters.'),
   age: z.number().describe('The age of the person in years.'),
@@ -25,56 +24,36 @@ const MacrosOutputSchema = z.object({
 export type MacrosOutput = z.infer<typeof MacrosOutputSchema>;
 
 export async function calculateMacros(input: z.infer<typeof MacrosInputSchema>): Promise<MacrosOutput> {
-  return calculateMacrosFlow(input);
-}
+  const { bmr, weight } = MacrosInputSchema.parse({
+    bmr: Number(input.bmr),
+    weight: Number(input.weight),
+    height: Number(input.height),
+    age: Number(input.age),
+  });
 
-const macroPrompt = ai.definePrompt({
-  name: 'macroPrompt',
-  input: { schema: MacrosInputSchema },
-  output: { schema: MacrosOutputSchema },
-  prompt: `You are a nutrition expert. Based on the user's BMR, weight, height, and age, calculate a balanced daily intake for protein, carbohydrates, fat, and fiber.
-
-  - Protein should be around 1.2-1.8 grams per kg of body weight.
-  - Fat should be around 20-30% of total daily calories (use BMR as a baseline for calories).
-  - Carbohydrates should make up the rest of the calories.
-  - Fiber should be around 14 grams per 1000 calories.
-
-  Remember: 1g protein = 4 calories, 1g carbs = 4 calories, 1g fat = 9 calories.
-
-  User data:
-  - BMR: {{{bmr}}} kcal
-  - Weight: {{{weight}}} kg
-  - Height: {{{height}}} cm
-  - Age: {{{age}}} years
-  
-  Provide a numerical estimate in grams for each field.`,
-});
-
-const calculateMacrosFlow = ai.defineFlow(
-  {
-    name: 'calculateMacrosFlow',
-    inputSchema: z.any(), // Accept any input to handle coercion manually
-    outputSchema: MacrosOutputSchema,
-  },
-  async (input) => {
-    try {
-        // Coerce input types to ensure they are numbers
-        const numericInput = {
-            bmr: Number(input.bmr),
-            weight: Number(input.weight),
-            height: Number(input.height),
-            age: Number(input.age),
-        };
-
-        const { output } = await macroPrompt(numericInput);
-        if (output) {
-            return output;
-        } else {
-             return { protein: 0, carbs: 0, fat: 0, fibre: 0 };
-        }
-    } catch(e) {
-        console.error("Error in calculateMacrosFlow:", e);
-        return { protein: 0, carbs: 0, fat: 0, fibre: 0 };
-    }
+  if (!(bmr > 0) || !(weight > 0)) {
+    return { protein: 0, carbs: 0, fat: 0, fibre: 0 };
   }
-);
+
+  // Protein: ~1.6g per kg of body weight (within the standard 1.2-1.8g/kg range).
+  const protein = weight * 1.6;
+  const proteinCalories = protein * 4;
+
+  // Fat: ~25% of total daily calories (within the standard 20-30% range).
+  const fatCalories = bmr * 0.25;
+  const fat = fatCalories / 9;
+
+  // Carbohydrates: the remainder of the daily calories.
+  const carbCalories = Math.max(bmr - proteinCalories - fatCalories, 0);
+  const carbs = carbCalories / 4;
+
+  // Fiber: ~14g per 1000 calories.
+  const fibre = 14 * (bmr / 1000);
+
+  return {
+    protein: Math.round(protein),
+    carbs: Math.round(carbs),
+    fat: Math.round(fat),
+    fibre: Math.round(fibre),
+  };
+}
