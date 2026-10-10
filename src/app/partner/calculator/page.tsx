@@ -82,7 +82,7 @@ export default function PartnerCalculatorPage() {
   const { auth } = useFirebase();
 
   const form = useForm<CalculatorFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
         customerName: "", customerEmail: "", customerMobile: "",
         age: "" as any, gender: undefined, height: "" as any, weight: "" as any,

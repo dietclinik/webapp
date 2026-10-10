@@ -86,7 +86,7 @@ export default function ExpensesPage() {
   const { db } = useFirebase();
 
   const form = useForm<z.infer<typeof expenseSchema>>({
-    resolver: zodResolver(expenseSchema),
+    resolver: zodResolver(expenseSchema) as any,
     defaultValues: {
       category: "",
       amount: 0,
@@ -286,7 +286,7 @@ export default function ExpensesPage() {
         {/* Mobile card grid */}
         <div className="grid gap-3 md:hidden">
           {expenses.length > 0 ? expenses.map(expense => (
-            <Card key={expense.id} className="border shadow-sm">
+            <Card key={expense.id} className="border shadow-xs">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between flex-wrap gap-3">
                   <div>

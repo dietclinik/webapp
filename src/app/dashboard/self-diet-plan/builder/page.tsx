@@ -236,7 +236,7 @@ export default function DailyDietLogPage() {
   const logId = searchParams.get('logId');
 
   const form = useForm<DailyLogFormData>({
-    resolver: zodResolver(dailyLogSchema),
+    resolver: zodResolver(dailyLogSchema) as any,
     defaultValues: { day: "New Log", date: new Date(), meals: [] },
   });
 

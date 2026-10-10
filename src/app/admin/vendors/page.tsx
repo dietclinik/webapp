@@ -291,7 +291,7 @@ export default function VendorsPage() {
         {/* Mobile card grid */}
         <div className="grid gap-3 md:hidden">
           {sortedAndFilteredVendors.length > 0 ? sortedAndFilteredVendors.map((vendor) => (
-            <Card key={vendor.id} className="border shadow-sm">
+            <Card key={vendor.id} className="border shadow-xs">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between flex-wrap gap-3">
                   <div>

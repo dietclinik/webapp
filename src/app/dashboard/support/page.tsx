@@ -54,7 +54,7 @@ export default function SupportPage() {
   const { auth, db } = useFirebase();
 
   const form = useForm<z.infer<typeof ticketSchema>>({
-    resolver: zodResolver(ticketSchema),
+    resolver: zodResolver(ticketSchema) as any,
     defaultValues: {
       subject: "",
       description: "",

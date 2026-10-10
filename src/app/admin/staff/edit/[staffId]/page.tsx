@@ -52,7 +52,7 @@ export default function EditStaffPage() {
   const { db, storage } = useFirebase();
 
   const form = useForm<StaffFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
   });
 
   useEffect(() => {

@@ -63,7 +63,7 @@ export default function BulkEmailPage() {
     const { db } = useFirebase();
 
     const form = useForm<z.infer<typeof emailFormSchema>>({
-        resolver: zodResolver(emailFormSchema),
+        resolver: zodResolver(emailFormSchema) as any,
         defaultValues: {
             subject: "",
             body: "",

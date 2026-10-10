@@ -66,7 +66,7 @@ export default function AdminNotificationsPage() {
               <li key={notif.id} className={`flex items-start gap-3 p-4 rounded-lg border ${!notif.read ? 'bg-primary/5' : 'bg-muted/50'}`}>
                 <Bell className="h-5 w-5 mt-1 text-primary shrink-0"/>
                 <div className="flex-1 min-w-0 space-y-1">
-                   <p className="font-medium break-words">
+                   <p className="font-medium wrap-break-word">
                      <Link href={notif.link} className="hover:underline">{notif.message}</Link>
                    </p>
                    <p className="text-sm text-muted-foreground">

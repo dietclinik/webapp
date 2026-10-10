@@ -398,7 +398,7 @@ export default function CorporateViewCustomerPage() {
                             <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {bodyImages.map((img, index) => (
                                     <div key={index} className="border rounded-md overflow-hidden">
-                                        <Image src={img} alt={`Body image ${index+1}`} width={200} height={300} className="w-full object-cover aspect-[2/3]"/>
+                                        <Image src={img} alt={`Body image ${index+1}`} width={200} height={300} className="w-full object-cover aspect-2/3"/>
                                     </div>
                                 ))}
                                 {bodyImages.length === 0 && <div className="col-span-4 text-muted-foreground text-center p-8 border rounded-md">No body images uploaded.</div>}

@@ -161,14 +161,14 @@ export default function MoneyBackChallengePage() {
                         <TableCell>
                            <div className="flex justify-center items-center gap-2">
                                 <Button 
-                                    variant={attendanceStatus === 'present' ? 'default' : 'outline'}
+                                    variant={attendanceStatus === 'present' ? 'default' : 'outline-solid'}
                                     size="icon" 
                                     onClick={() => handleAttendanceChange(p.id, 'present')}
                                 >
                                     <Check className="h-4 w-4" />
                                 </Button>
                                 <Button 
-                                    variant={attendanceStatus === 'absent' ? 'destructive' : 'outline'}
+                                    variant={attendanceStatus === 'absent' ? 'destructive' : 'outline-solid'}
                                     size="icon" 
                                     onClick={() => handleAttendanceChange(p.id, 'absent')}
                                 >

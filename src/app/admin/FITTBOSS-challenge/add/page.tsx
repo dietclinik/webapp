@@ -32,7 +32,7 @@ export default function AddFitbossGymPage() {
   const router = useRouter();
 
   const form = useForm<GymFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       name: "",
       email: "",

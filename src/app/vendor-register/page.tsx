@@ -176,7 +176,7 @@ export default function VendorPlansPage() {
                         </CardContent>
                         <CardFooter>
                           <Link href={`/partner-register/${plan.id}?duration=${displayVariant.durationLabel}`} className="w-full">
-                            <Button className="w-full" variant={plan.tag ? 'default' : 'outline'} style={{ backgroundColor: plan.tag ? 'hsl(var(--accent))' : undefined, color: plan.tag ? 'hsl(var(--accent-foreground))' : undefined }}>
+                            <Button className="w-full" variant={plan.tag ? 'default' : 'outline-solid'} style={{ backgroundColor: plan.tag ? 'hsl(var(--accent))' : undefined, color: plan.tag ? 'hsl(var(--accent-foreground))' : undefined }}>
                               Choose Plan
                             </Button>
                           </Link>

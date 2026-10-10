@@ -56,7 +56,7 @@ export default function PartnerEditCustomerPage() {
   const customerId = params.customerId as string;
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
   });
 
   useEffect(() => {

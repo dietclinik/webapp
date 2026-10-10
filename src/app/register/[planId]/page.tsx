@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useForm, FormProvider, Control } from "react-hook-form";
+import { useForm, FormProvider, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter, useParams } from "next/navigation";
@@ -173,7 +173,7 @@ const activityLevels = [
 ];
 
 type ImageUploadFieldProps = {
-    control: Control<any>;
+    control: any;
     name: "frontImage" | "backImage" | "leftImage" | "rightImage";
     label: string;
 };
@@ -254,7 +254,7 @@ export default function RegisterPage() {
   const planId = params.planId as string;
   
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as Resolver<z.infer<typeof formSchema>>,
     defaultValues: {
       name: "",
       mobile: "",

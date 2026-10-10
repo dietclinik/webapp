@@ -39,7 +39,7 @@ export default function EditEventPage() {
   const { db, auth } = useFirebase();
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
   });
 
   useEffect(() => {
