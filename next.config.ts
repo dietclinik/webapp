@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Next.js 16 defaults to Turbopack, which ignores the `webpack()` hook below
+  // (kept only as a fallback for `next build --webpack`). An empty config here
+  // silences Next's "Turbopack + webpack config" warning.
+  turbopack: {},
   images: {
     remotePatterns: [
       {

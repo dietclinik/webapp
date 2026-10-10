@@ -40,7 +40,7 @@ import { MobileSearch } from "@/components/ui/mobile-search";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { deletePartner } from "@/ai/flows/delete-partner-flow";
-import { errorEmitter } from "@/firebase/errors";
+import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
 type Customer = {
