@@ -21,7 +21,7 @@ export const ProcessCustomerInputSchema = z.object({
         paymentStatus: z.string(),
         subscriptionStartDate: z.string(),
         subscriptionEndDate: z.string(),
-        customFields: z.record(z.any()),
+        customFields: z.record(z.string(), z.any()),
     }),
     profileData: z.object({
         name: z.string(),

@@ -127,7 +127,7 @@ export default function MoneyBackChallengePage() {
                 mode="single"
                 selected={selectedDate}
                 onSelect={(date) => date && setSelectedDate(date)}
-                initialFocus
+                autoFocus
               />
             </PopoverContent>
           </Popover>

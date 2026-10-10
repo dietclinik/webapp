@@ -427,7 +427,7 @@ export default function AddCustomerPage() {
                                     mode="single"
                                     selected={formField.value ? new Date(formField.value) : undefined}
                                     onSelect={formField.onChange}
-                                    initialFocus
+                                    autoFocus
                                     />
                                 </PopoverContent>
                                 </Popover>

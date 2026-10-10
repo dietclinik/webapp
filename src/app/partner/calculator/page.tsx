@@ -27,7 +27,7 @@ const formSchema = z.object({
   customerEmail: z.string().email("A valid email is required."),
   customerMobile: z.string().regex(/^\d{10}$/, "A valid 10-digit mobile number is required."),
   age: z.coerce.number().min(1, "Age is required."),
-  gender: z.enum(['male', 'female'], { required_error: "Gender is required." }),
+  gender: z.enum(['male', 'female'], { error: "Gender is required." }),
   height: z.coerce.number().min(1, "Height is required."),
   weight: z.coerce.number().min(1, "Weight is required."),
   neck: z.coerce.number().min(1, "Neck measurement is required."),
