@@ -18,6 +18,8 @@ import { getAuth } from 'firebase-admin/auth';
 // The logic to initialize Firebase on the client-side is in `firebase-provider.tsx`.
 
 let app: App | undefined;
+let auth: ReturnType<typeof getAuth> | null = null;
+let db: ReturnType<typeof getFirestore> | null = null;
 
 if (typeof window === 'undefined') {
   try {
@@ -36,16 +38,20 @@ if (typeof window === 'undefined') {
     } else {
       app = getApp();
     }
+
+    // getAuth()/getFirestore() can themselves throw (e.g. a malformed project ID in the
+    // service account) -- keep them inside this same try/catch, not after it, so any
+    // failure here still degrades gracefully instead of crashing the whole module at
+    // import time (which would otherwise fail every route/flow that imports
+    // `admin`/`auth`/`db`, turning into an opaque empty 500 with no JSON body).
+    if (app) {
+      auth = getAuth(app);
+      db = getFirestore(app);
+    }
   } catch (e) {
-    // Don't let a bad/missing FIREBASE_SERVICE_ACCOUNT_KEY crash this module at import time --
-    // every route/flow that imports `admin`/`auth`/`db` would otherwise fail to load at all,
-    // turning into an opaque 500 with no JSON body instead of a clear error.
     console.error("Firebase Admin SDK: failed to initialize.", e);
   }
 }
-
-const auth = app ? getAuth(app) : null;
-const db = app ? getFirestore(app) : null;
 
 if (typeof window === 'undefined' && (!auth || !db)) {
     console.warn("Firebase Admin components (Auth, Firestore) are not available. Ensure service account is configured for server-side operations.");
