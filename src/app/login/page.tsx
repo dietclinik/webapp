@@ -17,6 +17,15 @@ import { Eye, EyeOff, Loader2, MessageSquare, Mail, Phone } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+async function parseJsonResponse(res: Response): Promise<any> {
+  const text = await res.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`Server returned an unexpected response (HTTP ${res.status}). Please try again.`);
+  }
+}
+
 const policyLinks = [
     { href: "/terms-and-conditions", label: "Terms & Conditions" },
     { href: "/privacy-policy", label: "Privacy Policy" },
@@ -152,8 +161,8 @@ export default function LoginPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phoneNumber: fullNumber })
         });
-        const data = await res.json();
-        
+        const data = await parseJsonResponse(res);
+
         if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
         
         setOtpSent(true);
@@ -179,8 +188,8 @@ export default function LoginPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phoneNumber, otp })
         });
-        const data = await res.json();
-        
+        const data = await parseJsonResponse(res);
+
         if (!res.ok) throw new Error(data.error || 'Verification failed');
         
         if (!auth) throw new Error("Authentication service is not available.");

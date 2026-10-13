@@ -20,20 +20,27 @@ import { getAuth } from 'firebase-admin/auth';
 let app: App | undefined;
 
 if (typeof window === 'undefined') {
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-    : null;
+  try {
+    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+      ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+      : null;
 
-  if (getApps().length === 0) {
-    if (serviceAccount) {
-      app = initializeApp({
-        credential: cert(serviceAccount),
-      });
+    if (getApps().length === 0) {
+      if (serviceAccount) {
+        app = initializeApp({
+          credential: cert(serviceAccount),
+        });
+      } else {
+        console.warn("Firebase Admin SDK: Service account key is missing. This is expected in a client-only environment but will fail in a server environment.");
+      }
     } else {
-      console.warn("Firebase Admin SDK: Service account key is missing. This is expected in a client-only environment but will fail in a server environment.");
+      app = getApp();
     }
-  } else {
-    app = getApp();
+  } catch (e) {
+    // Don't let a bad/missing FIREBASE_SERVICE_ACCOUNT_KEY crash this module at import time --
+    // every route/flow that imports `admin`/`auth`/`db` would otherwise fail to load at all,
+    // turning into an opaque 500 with no JSON body instead of a clear error.
+    console.error("Firebase Admin SDK: failed to initialize.", e);
   }
 }
 
