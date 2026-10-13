@@ -20,9 +20,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 async function parseJsonResponse(res: Response): Promise<any> {
   const text = await res.text();
   try {
-    return text ? JSON.parse(text) : {};
+    return JSON.parse(text);
   } catch {
-    throw new Error(`Server returned an unexpected response (HTTP ${res.status}). Please try again.`);
+    throw new Error(`Server returned an unexpected response (HTTP ${res.status}): ${text.slice(0, 200) || "(empty body)"}`);
   }
 }
 
