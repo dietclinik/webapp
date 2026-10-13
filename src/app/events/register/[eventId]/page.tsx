@@ -171,7 +171,7 @@ export default function RegisterForEventPage() {
     }, []);
 
     const form = useForm<z.infer<typeof dynamicSchema>>({
-        resolver: zodResolver(dynamicSchema),
+        resolver: zodResolver(dynamicSchema) as any,
         defaultValues: { name: "", email: "", mobile: "", designation: "", foodPreference: 'veg', age: '' as any, gender: "", height: '' as any, weight: '' as any, neck: '' as any, waist: '' as any, hips: '' as any, activityLevel: "", healthProblems: "", allergies: "", smoking: "no", alcohol: "no", consent: false },
     });
 

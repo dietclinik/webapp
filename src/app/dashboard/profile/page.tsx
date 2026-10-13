@@ -152,14 +152,14 @@ export default function ProfilePage() {
   const router = useRouter();
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
-    resolver: zodResolver(profileFormSchema),
+    resolver: zodResolver(profileFormSchema) as any,
     defaultValues: {
         activityLevel: '',
     }
   });
 
   const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
-    resolver: zodResolver(passwordFormSchema),
+    resolver: zodResolver(passwordFormSchema) as any,
     defaultValues: {
       currentPassword: "",
       newPassword: "",
@@ -595,7 +595,7 @@ export default function ProfilePage() {
                                   <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                       {bodyImages.map((img, index) => (
                                           <button key={index} type="button" onClick={() => openImageSlider(index)} className="border rounded-md overflow-hidden focus:ring-2 ring-primary">
-                                              <Image src={img} alt={`Body image ${index+1}`} width={200} height={300} className="w-full object-cover aspect-[2/3]"/>
+                                              <Image src={img} alt={`Body image ${index+1}`} width={200} height={300} className="w-full object-cover aspect-2/3"/>
                                           </button>
                                       ))}
                                       {bodyImages.length === 0 && <div className="col-span-4 text-muted-foreground text-center p-8 border rounded-md">No body images uploaded.</div>}

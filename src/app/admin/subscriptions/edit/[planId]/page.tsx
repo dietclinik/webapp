@@ -59,7 +59,7 @@ export default function EditSubscriptionPage() {
   const planId = params.planId as string;
 
   const form = useForm<PlanFormData>({
-    resolver: zodResolver(planSchema),
+    resolver: zodResolver(planSchema) as any,
     defaultValues: {
       features: [],
       priceVariants: [],
@@ -365,7 +365,7 @@ export default function EditSubscriptionPage() {
             )}/>
 
             <FormField control={form.control} name="showOnFrontend" render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-xs">
                   <div className="space-y-0.5"><FormLabel>Show on Homepage</FormLabel></div>
                   <FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl>
                 </FormItem>

@@ -53,7 +53,7 @@ export default function DailyWeightTrackingPage() {
     const { toast } = useToast();
 
     const form = useForm<z.infer<typeof weightSchema>>({
-        resolver: zodResolver(weightSchema),
+        resolver: zodResolver(weightSchema) as any,
         defaultValues: { weight: "" as any },
     });
 

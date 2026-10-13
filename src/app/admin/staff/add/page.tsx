@@ -49,7 +49,7 @@ export default function AddStaffPage() {
   const router = useRouter();
   
   const form = useForm<StaffFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       name: "",
       email: "",

@@ -327,7 +327,7 @@ export default function StaffPage() {
         {/* Mobile card grid */}
         <div className="grid gap-3 md:hidden">
           {sortedAndFilteredStaff.length > 0 ? sortedAndFilteredStaff.map(s => (
-            <Card key={s.id} className="border shadow-sm">
+            <Card key={s.id} className="border shadow-xs">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between flex-wrap gap-3">
                   <div className="flex items-center gap-3">

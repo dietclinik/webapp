@@ -257,7 +257,7 @@ export default function AllCorporatesPage() {
             {/* Mobile card grid */}
             <div className="grid gap-3 md:hidden">
               {filteredCorporates.length > 0 ? filteredCorporates.map((corporate) => (
-                <Card key={corporate.id} className="border shadow-sm">
+                <Card key={corporate.id} className="border shadow-xs">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between flex-wrap gap-3">
                       <div>

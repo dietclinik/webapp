@@ -45,7 +45,7 @@ export default function CorporateAddCustomerPage() {
   const router = useRouter();
   
   const form = useForm<CustomerFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       name: "",
       email: "",

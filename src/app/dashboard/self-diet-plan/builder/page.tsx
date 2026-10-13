@@ -236,7 +236,7 @@ export default function DailyDietLogPage() {
   const logId = searchParams.get('logId');
 
   const form = useForm<DailyLogFormData>({
-    resolver: zodResolver(dailyLogSchema),
+    resolver: zodResolver(dailyLogSchema) as any,
     defaultValues: { day: "New Log", date: new Date(), meals: [] },
   });
 
@@ -394,7 +394,7 @@ export default function DailyDietLogPage() {
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} autoFocus />
                     </PopoverContent>
                   </Popover>
                   <FormMessage />

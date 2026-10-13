@@ -313,14 +313,14 @@ export function CreateTemplateDialog({ onSuccess, initialData, trigger }: Create
                                                 <Label>Header Format</Label>
                                                 <div className="flex gap-2">
                                                     <Button 
-                                                        variant={comp.format === 'TEXT' ? 'default' : 'outline'} 
+                                                        variant={comp.format === 'TEXT' ? 'default' : 'outline-solid'} 
                                                         size="sm"
                                                         onClick={() => updateComponent('HEADER', { format: 'TEXT', text: '', example: undefined })}
                                                     >
                                                         Text
                                                     </Button>
                                                     <Button 
-                                                        variant={comp.format === 'IMAGE' ? 'default' : 'outline'} 
+                                                        variant={comp.format === 'IMAGE' ? 'default' : 'outline-solid'} 
                                                         size="sm"
                                                         onClick={() => updateComponent('HEADER', { format: 'IMAGE', example: { header_handle: [] } })}
                                                     >

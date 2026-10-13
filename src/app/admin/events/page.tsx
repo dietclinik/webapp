@@ -134,7 +134,7 @@ export default function EventsPage() {
               ))
             ) : events.length > 0 ? (
               events.map((event) => (
-                <Card key={event.id} className="border shadow-sm">
+                <Card key={event.id} className="border shadow-xs">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between flex-wrap gap-3">
                       <div>

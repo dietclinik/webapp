@@ -40,7 +40,7 @@ export default function EditVendorPage() {
   const { db } = useFirebase();
 
   const form = useForm<VendorFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
   });
 
   useEffect(() => {

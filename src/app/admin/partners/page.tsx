@@ -40,7 +40,7 @@ import { MobileSearch } from "@/components/ui/mobile-search";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { deletePartner } from "@/ai/flows/delete-partner-flow";
-import { errorEmitter } from "@/firebase/errors";
+import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
 type Customer = {
@@ -304,7 +304,7 @@ export default function PartnersPage() {
         {/* Mobile card grid */}
         <div className="grid gap-3 md:hidden">
           {sortedAndFilteredPartners.length > 0 ? sortedAndFilteredPartners.map((partner) => (
-            <Card key={partner.id} className="border shadow-sm">
+            <Card key={partner.id} className="border shadow-xs">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between flex-wrap gap-3">
                   <div>

@@ -109,7 +109,7 @@ export default function ActivityTrackerPage() {
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof activityLogSchema>>({
-    resolver: zodResolver(activityLogSchema),
+    resolver: zodResolver(activityLogSchema) as any,
     defaultValues: { activityId: '', durationId: '', intensityId: '' },
   });
 

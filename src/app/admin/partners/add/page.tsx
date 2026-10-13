@@ -64,7 +64,7 @@ export default function AddPartnerPage() {
   const router = useRouter();
 
   const form = useForm<PartnerFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       name: "",
       email: "",

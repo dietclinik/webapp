@@ -147,7 +147,7 @@ export default function SubscriptionsPage() {
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: baseDefaultValues,
   });
   
@@ -361,7 +361,7 @@ export default function SubscriptionsPage() {
           {/* Mobile card grid */}
           <div className="grid gap-3 md:hidden">
             {filteredPlans.length > 0 ? filteredPlans.map(plan => (
-              <Card key={plan.id} className="border shadow-sm">
+              <Card key={plan.id} className="border shadow-xs">
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between flex-wrap gap-3">
                     <div>
@@ -614,7 +614,7 @@ export default function SubscriptionsPage() {
                                 )}/>
 
                                 <FormField control={form.control} name="showOnFrontend" render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-xs">
                                       <div className="space-y-0.5"><FormLabel>Show on Homepage</FormLabel></div>
                                       <FormControl><Switch checked={field.value} onCheckedChange={field.onChange}/></FormControl>
                                     </FormItem>

@@ -116,7 +116,7 @@ export default function AddCustomerPage() {
   const router = useRouter();
   
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       name: "",
       email: "",
@@ -427,7 +427,7 @@ export default function AddCustomerPage() {
                                     mode="single"
                                     selected={formField.value ? new Date(formField.value) : undefined}
                                     onSelect={formField.onChange}
-                                    initialFocus
+                                    autoFocus
                                     />
                                 </PopoverContent>
                                 </Popover>
@@ -437,7 +437,7 @@ export default function AddCustomerPage() {
                             inputComponent = <Input placeholder={field.placeholder} {...formField} />;
                     }
                     return (
-                        <FormItem className={field.type === 'switch' ? "flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm" : ""}>
+                        <FormItem className={field.type === 'switch' ? "flex flex-row items-center justify-between rounded-lg border p-3 shadow-xs" : ""}>
                              <FormLabel className={field.type === 'switch' ? 'pt-0' : ''}>{field.label}{field.required ? " *" : ""}</FormLabel>
                             <FormControl>{inputComponent}</FormControl>
                             <FormMessage />

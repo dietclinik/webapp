@@ -171,7 +171,7 @@ export default function DietPlanBuilderPage() {
     const planId = searchParams.get('planId');
 
     const form = useForm<DietPlanFormData>({
-        resolver: zodResolver(dietPlanSchema),
+        resolver: zodResolver(dietPlanSchema) as any,
         defaultValues: {
             name: "",
             target: "",
@@ -405,7 +405,7 @@ export default function DietPlanBuilderPage() {
                         </CardFooter>
                     </Card>
 
-                    <div className="fixed bottom-0 left-0 md:left-[4.5rem] right-0 bg-background/80 backdrop-blur-sm border-t p-4 z-10">
+                    <div className="fixed bottom-0 left-0 md:left-18 right-0 bg-background/80 backdrop-blur-xs border-t p-4 z-10">
                         <div className="max-w-7xl mx-auto flex items-center justify-end">
                             <Button type="submit" disabled={isSubmitting || isFetchingNutrition !== null}>
                                 {(isSubmitting || !!isFetchingNutrition) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

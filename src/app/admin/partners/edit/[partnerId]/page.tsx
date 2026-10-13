@@ -40,7 +40,7 @@ export default function EditPartnerPage() {
   const { db } = useFirebase();
 
   const form = useForm<PartnerFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
   });
 
   useEffect(() => {

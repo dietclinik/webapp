@@ -38,7 +38,7 @@ export default function EditCorporatePage() {
   const { db } = useFirebase();
 
   const form = useForm<CorporateFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
   });
 
   useEffect(() => {

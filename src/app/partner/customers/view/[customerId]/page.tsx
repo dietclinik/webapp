@@ -401,14 +401,14 @@ export default function ViewChallengeParticipantPage() {
                         <CardContent>
                             <div className="flex justify-center items-center gap-2">
                                 <Button 
-                                    variant={selectedLogData?.attendance === 'present' ? 'default' : 'outline'}
+                                    variant={selectedLogData?.attendance === 'present' ? 'default' : 'outline-solid'}
                                     size="sm" 
                                     onClick={() => handleAttendanceChange(participant.id, selectedDate!, 'present')}
                                 >
                                     <Check className="mr-2 h-4 w-4" /> Present
                                 </Button>
                                 <Button 
-                                    variant={selectedLogData?.attendance === 'absent' ? 'destructive' : 'outline'}
+                                    variant={selectedLogData?.attendance === 'absent' ? 'destructive' : 'outline-solid'}
                                     size="sm" 
                                     onClick={() => handleAttendanceChange(participant.id, selectedDate!, 'absent')}
                                 >

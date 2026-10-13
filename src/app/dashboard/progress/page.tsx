@@ -113,7 +113,7 @@ function LogMeasurementDialog({ onLogAdded, customFields }: { onLogAdded: () => 
     }, [customFields]);
 
     const form = useForm<z.infer<typeof dynamicSchema>>({
-        resolver: zodResolver(dynamicSchema),
+        resolver: zodResolver(dynamicSchema) as any,
     });
     
      useEffect(() => {

@@ -60,7 +60,7 @@ export default function PartnerProfilePage() {
   const { auth, db, storage } = useFirebase();
 
   const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
-    resolver: zodResolver(passwordFormSchema),
+    resolver: zodResolver(passwordFormSchema) as any,
     defaultValues: {
       currentPassword: "",
       newPassword: "",

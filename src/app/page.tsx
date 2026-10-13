@@ -178,7 +178,7 @@ export default function Home() {
                     {plan.tag && (
                       <div className="gradient-accent text-white text-sm font-semibold text-center py-2 rounded-t-lg relative overflow-hidden">
                         <span className="relative z-10">{plan.tag}</span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+                        <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
                       </div>
                     )}
                     <CardHeader className="items-center text-center pb-2">
@@ -221,7 +221,7 @@ export default function Home() {
         </section>
 
         {homepageSettings.featuresSectionVisible && (
-          <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-muted/20 to-background">
+          <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-linear-to-b from-muted/20 to-background">
             <div className="container mx-auto px-4 md:px-6">
               <div className="flex flex-col items-center justify-center space-y-4 text-center animate-fade-in-up">
                 <div className="space-y-2">

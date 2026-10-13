@@ -85,7 +85,7 @@ export default function VendorAddCustomerPage() {
   const router = useRouter();
   
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       name: "",
       email: "",

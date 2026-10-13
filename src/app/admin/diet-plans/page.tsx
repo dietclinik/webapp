@@ -432,7 +432,7 @@ export default function DietPlansPage() {
           {/* Mobile card grid */}
           <div className="grid gap-3 md:hidden">
             {dietPlans.length > 0 ? dietPlans.map(plan => (
-              <Card key={plan.id} className="border shadow-sm">
+              <Card key={plan.id} className="border shadow-xs">
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between flex-wrap gap-3">
                     <div>
