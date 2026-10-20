@@ -315,7 +315,7 @@ export default function DietPlanBuilderPage() {
                 await addDoc(collectionRef, planData);
                 toast({ title: "Success", description: "Diet plan created successfully." });
             }
-            router.push("/admin/diet-plans");
+            router.push("/partner/diet-plans");
         } catch (error) {
             console.error("Error saving diet plan:", error);
             toast({ variant: "destructive", title: "Error", description: "Could not save diet plan." });
