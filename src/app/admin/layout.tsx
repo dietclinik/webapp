@@ -5,7 +5,7 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { BookCopy, Home, IndianRupee, Settings, Users, ShoppingCart, Receipt, Bell, ShieldAlert, UserPlus, Dumbbell, Video, ArrowUpRight, Building2, Activity, MailQuestion, Megaphone, MessageSquare, Trophy, UserCircle, RotateCcw } from 'lucide-react';
+import { BookCopy, Home, IndianRupee, Settings, Users, ShoppingCart, Receipt, Bell, ShieldAlert, UserPlus, Dumbbell, Video, ArrowUpRight, Building2, Activity, MailQuestion, Megaphone, MessageSquare, Trophy, UserCircle, RotateCcw, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
@@ -175,6 +175,7 @@ function AdminAuthWrapper({ children }: { children: ReactNode }) {
         { href: "/admin/FITTBOSS-challenge", icon: Trophy, label: "FITTBOSS Challenge", activePaths: ["/admin/FITTBOSS-challenge/add"] },
         { href: "/admin/subscriptions", icon: IndianRupee, label: "Subscriptions", activePaths: ["/admin/subscriptions/edit"] },
         { href: "/admin/diet-plans", icon: BookCopy, label: "Diet Plans", activePaths: ["/admin/diet-plans/builder"] },
+        { href: "/admin/calculator", icon: Calculator, label: "Calculator" },
         { href: "/admin/marketing", icon: Megaphone, label: "Marketing", activePaths: ["/admin/marketing/bulk-email", "/admin/marketing/bulk-whatsapp"] },
         { href: "/admin/meetings", icon: Video, label: "Meetings" },
         {
