@@ -158,6 +158,17 @@ const newPartnerFlow = ai.defineFlow(
                     await tempVendorRef.delete();
                 }
 
+                // Record this payment so it shows up in the partner's transaction history
+                // and in admin revenue reporting (mirrors send-welcome-email-flow.ts's customer purchases).
+                await db.collection('subscriptionHistory').add({
+                    userId,
+                    planId,
+                    planName,
+                    amount: planPrice || 0,
+                    purchaseDate: Timestamp.now(),
+                    status: 'Paid',
+                });
+
                 // Send welcome email AFTER vendor doc is confirmed saved
                 if (welcomePassword) {
                     await sendTransactionalEmail({

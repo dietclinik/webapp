@@ -5,7 +5,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Loader2, User, Phone, Mail, MapPin, Users, IndianRupee } from "lucide-react";
+import { ChevronLeft, Loader2, User, Phone, Mail, MapPin, Users, IndianRupee, CalendarDays, BadgeCheck, Receipt } from "lucide-react";
 import { doc, getDoc, collection, query, where, getDocs, Timestamp, orderBy } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from "@/components/firebase-provider";
@@ -27,6 +27,22 @@ type PartnerData = {
     mobile?: string;
     address?: string;
     status: 'Active' | 'Inactive';
+    createdAt?: Timestamp;
+    planName?: string;
+    planVariantLabel?: string;
+    planPrice?: number;
+    tier?: string;
+    paymentStatus?: string;
+    subscriptionStartDate?: Timestamp;
+    subscriptionEndDate?: Timestamp;
+};
+
+type PaymentTransaction = {
+    id: string;
+    planName: string;
+    amount: number;
+    purchaseDate: Timestamp;
+    status?: string;
 };
 
 type CustomerData = {
@@ -62,6 +78,7 @@ export default function ViewPartnerPage() {
   const [partner, setPartner] = useState<PartnerData | null>(null);
   const [customers, setCustomers] = useState<CustomerData[]>([]);
   const [earnings, setEarnings] = useState<EarningHistoryItem[]>([]);
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
   const { toast } = useToast();
   const { db } = useFirebase();
   const router = useRouter();
@@ -78,8 +95,27 @@ export default function ViewPartnerPage() {
         const vendorSnap = await getDoc(vendorDocRef);
 
         if (vendorSnap.exists()) {
-          setPartner(vendorSnap.data() as PartnerData);
-          
+          const partnerData = vendorSnap.data() as PartnerData;
+          setPartner(partnerData);
+
+          // Partner's own subscription payments (not to be confused with earnings from
+          // referred customers, which are keyed by `vendorId` below).
+          const paymentsQuery = query(collection(db, "subscriptionHistory"), where("userId", "==", vendorId), orderBy("purchaseDate", "desc"));
+          const paymentsSnap = await getDocs(paymentsQuery);
+          if (!paymentsSnap.empty) {
+            setTransactions(paymentsSnap.docs.map(d => ({ id: d.id, ...d.data() } as PaymentTransaction)));
+          } else if (partnerData.planName && partnerData.subscriptionStartDate) {
+            // Partners registered before payment history was tracked have no subscriptionHistory
+            // entries yet — fall back to a single row derived from their current plan snapshot.
+            setTransactions([{
+                id: 'current-plan',
+                planName: partnerData.planVariantLabel ? `${partnerData.planName} (${partnerData.planVariantLabel})` : partnerData.planName,
+                amount: partnerData.planPrice || 0,
+                purchaseDate: partnerData.subscriptionStartDate,
+                status: partnerData.paymentStatus,
+            }]);
+          }
+
           const customersQuery = query(collection(db, "customers"), where("vendorId", "==", vendorId));
           const customersSnap = await getDocs(customersQuery);
           const fetchedCustomers = customersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as CustomerData));
@@ -219,18 +255,30 @@ export default function ViewPartnerPage() {
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="overview">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="customers">Customers</TabsTrigger>
                         <TabsTrigger value="earnings">Earnings</TabsTrigger>
+                        <TabsTrigger value="payments">Payments</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="overview" className="mt-6">
+                    <TabsContent value="overview" className="mt-6 space-y-6">
                          <Card>
                             <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><User className="h-5 w-5"/> Partner Details</CardTitle></CardHeader>
                             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                 <DetailItem icon={Mail} label="Email Address" value={partner.email} />
                                 <DetailItem icon={Phone} label="Mobile Number" value={partner.mobile} />
                                 <DetailItem icon={MapPin} label="Address" value={partner.address} />
+                                <DetailItem icon={CalendarDays} label="Registered On" value={partner.createdAt ? format(partner.createdAt.toDate(), 'PPP') : undefined} />
+                            </CardContent>
+                        </Card>
+                         <Card>
+                            <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><BadgeCheck className="h-5 w-5"/> Subscription Plan</CardTitle></CardHeader>
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                <DetailItem icon={BadgeCheck} label="Plan" value={partner.planName ? (partner.planVariantLabel ? `${partner.planName} (${partner.planVariantLabel})` : partner.planName) : undefined} />
+                                <DetailItem icon={IndianRupee} label="Plan Price" value={partner.planPrice !== undefined ? `₹${partner.planPrice.toFixed(2)}` : undefined} />
+                                <DetailItem icon={CalendarDays} label="Subscription Start" value={partner.subscriptionStartDate ? format(partner.subscriptionStartDate.toDate(), 'PPP') : undefined} />
+                                <DetailItem icon={CalendarDays} label="Subscription End" value={partner.subscriptionEndDate ? format(partner.subscriptionEndDate.toDate(), 'PPP') : undefined} />
+                                <DetailItem icon={BadgeCheck} label="Payment Status" value={partner.paymentStatus} />
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -310,6 +358,47 @@ export default function ViewPartnerPage() {
                                         ) : (
                                         <TableRow>
                                             <TableCell colSpan={4} className="text-center">No earnings recorded for this partner yet.</TableCell>
+                                        </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="payments" className="mt-6">
+                         <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <Receipt className="h-5 w-5"/>
+                                    Payment Transactions
+                                </CardTitle>
+                                <CardDescription>A list of this partner's own subscription payments.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Plan</TableHead>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead className="text-right">Amount</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {transactions.length > 0 ? (
+                                        transactions.map(item => (
+                                            <TableRow key={item.id}>
+                                                <TableCell><Badge variant="outline">{item.planName}</Badge></TableCell>
+                                                <TableCell>{format(item.purchaseDate.toDate(), 'PPP')}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={item.status === 'Paid' ? 'success' : 'secondary'}>{item.status || 'N/A'}</Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right font-medium">₹{item.amount.toFixed(2)}</TableCell>
+                                            </TableRow>
+                                        ))
+                                        ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="text-center">No payment transactions recorded for this partner yet.</TableCell>
                                         </TableRow>
                                         )}
                                     </TableBody>
