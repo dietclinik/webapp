@@ -121,6 +121,8 @@ export default function PartnerRegisterPage() {
               planId: plan.id,
               durationMonths: selectedVariant.durationMonths,
               durationDays: selectedVariant.durationDays,
+              planVariantLabel: selectedVariant.durationLabel,
+              planPrice: selectedVariant.price,
           }
         });
 

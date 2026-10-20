@@ -192,13 +192,19 @@ const newPartnerFlow = ai.defineFlow(
             const tempId = `unpaid_${email.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`;
             const vendorDocRef = db.collection("vendors").doc(tempId);
 
-            const dataToSave = {
+            const dataToSave: Record<string, any> = {
                 name, email, mobile, planId, ...otherData,
                 status: 'Inactive',
                 paymentStatus: 'Failed',
                 tier: planTier,
                 createdAt: Timestamp.now(),
             };
+            // Keep duration/price so a later manual activation (admin/partners/edit) has
+            // what it needs to pass back into this flow instead of re-asking for it.
+            if (durationMonths !== undefined) dataToSave.durationMonths = durationMonths;
+            if (durationDays !== undefined) dataToSave.durationDays = durationDays;
+            if (planVariantLabel) dataToSave.planVariantLabel = planVariantLabel;
+            if (planPrice !== undefined) dataToSave.planPrice = planPrice;
             await vendorDocRef.set(dataToSave);
             return { userId: tempId, message: "Partner data saved with payment failed status." };
         }

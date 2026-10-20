@@ -95,6 +95,8 @@ function UpgradeDialog({ currentPlan, partner, availablePlans, onSuccessfulUpgra
                     planId: newPlan.id,
                     durationMonths: variant.durationMonths,
                     durationDays: variant.durationDays,
+                    planVariantLabel: variant.durationLabel,
+                    planPrice: variant.price,
                 }
             });
 

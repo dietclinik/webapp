@@ -105,6 +105,11 @@ export default function EditPartnerPage() {
                 email: initialData.email,
                 mobile: initialData.mobile,
                 address: initialData.address,
+                planId: initialData.planId,
+                durationMonths: initialData.durationMonths,
+                durationDays: initialData.durationDays,
+                planVariantLabel: initialData.planVariantLabel,
+                planPrice: initialData.planPrice,
             }
         });
         
