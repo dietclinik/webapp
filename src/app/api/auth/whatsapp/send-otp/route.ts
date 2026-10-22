@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase-admin';
 import { getWhatsAppServiceWithSettings } from '@/lib/whatsapp-service';
 
-type UserType = 'customer' | 'partner' | 'vendor' | 'admin';
+type UserType = 'customer' | 'partner' | 'vendor' | 'admin' | 'staff';
 
 const COLLECTION_MAP: Record<UserType, string> = {
     customer: 'customers',
     partner: 'vendors',
     vendor: 'vendors',
     admin: 'admins',
+    staff: 'staff',
 };
 
 export async function POST(req: NextRequest) {
