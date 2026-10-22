@@ -38,7 +38,10 @@ const uploadStaffFilesFlow = ai.defineFlow(
   },
   async (input) => {
     if (!admin.apps.length) {
-        throw new Error("Firebase Admin SDK not initialized.");
+        // Returned (not thrown): Next.js redacts thrown Server Action errors in
+        // production into an opaque "Minified React error #441", so any message that
+        // needs to reach the user has to come back as normal data, not an exception.
+        return { message: "Firebase Admin SDK not initialized." };
     }
     
     const { photoDataUri, resumeDataUri, ...staffData } = input;
@@ -92,7 +95,7 @@ const uploadStaffFilesFlow = ai.defineFlow(
 
     } catch (error: any) {
         console.error("Error in uploadStaffFilesFlow:", error);
-        throw new Error(`Failed to upload files or create staff: ${error.message}`);
+        return { message: `Failed to upload files or create staff: ${error.message}` };
     }
   }
 );

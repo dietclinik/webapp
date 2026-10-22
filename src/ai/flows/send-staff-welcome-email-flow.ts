@@ -135,19 +135,22 @@ const newStaffFlow = ai.defineFlow(
     },
     async (input) => {
         if (!admin.apps.length || !db) {
-            throw new Error("Firebase Admin SDK not initialized.");
+            // Returned (not thrown): Next.js redacts thrown Server Action errors in
+            // production into an opaque "Minified React error #441", so any message that
+            // needs to reach the user has to come back as normal data, not an exception.
+            return { message: "Firebase Admin SDK not initialized." };
         }
 
         const { name, email, ...staffData } = input;
         const password = generatePassword();
 
+        const existingUser = await admin.auth().getUserByEmail(email).catch(() => null);
+        if (existingUser) {
+            return { message: `An account with the email ${email} already exists.` };
+        }
+
         let userRecord;
         try {
-            userRecord = await admin.auth().getUserByEmail(email).catch(() => null);
-            if (userRecord) {
-                throw new Error(`An account with the email ${email} already exists.`);
-            }
-
             userRecord = await admin.auth().createUser({
                 email: email,
                 emailVerified: false,
@@ -158,39 +161,48 @@ const newStaffFlow = ai.defineFlow(
 
         } catch (error: any) {
             console.error(`Error creating staff user in Firebase Auth: ${error.message}`);
-            throw new Error(`Failed to create staff user in Firebase Auth: ${error.message}`);
+            return { message: `Failed to create staff user in Firebase Auth: ${error.message}` };
         }
 
         const userId = userRecord.uid;
-        const staffDocRef = db.collection("staff").doc(userId);
 
-        const dataToSave = {
-            name,
-            email,
-            ...staffData,
-            photoURL: staffData.photoURL || null,
-            resumeURL: staffData.resumeURL || null,
-            createdAt: Timestamp.now(),
-        };
+        try {
+            const staffDocRef = db.collection("staff").doc(userId);
 
-        await staffDocRef.set(dataToSave);
-
-        await sendEmailFlow({ name, email, password });
-
-        // Send WhatsApp Welcome
-        if (staffData.mobile) {
-            sendWelcomeStaff({
-                phone: staffData.mobile,
+            const dataToSave = {
                 name,
-                userId,
-            }).catch(console.error);
-        }
+                email,
+                ...staffData,
+                photoURL: staffData.photoURL || null,
+                resumeURL: staffData.resumeURL || null,
+                createdAt: Timestamp.now(),
+            };
 
-        await createNotification({
-            userId: 'admin',
-            message: `A new staff member, ${name}, has been added.`,
-            link: `/admin/staff`
-        });
+            await staffDocRef.set(dataToSave);
+
+            await sendEmailFlow({ name, email, password });
+
+            // Send WhatsApp Welcome
+            if (staffData.mobile) {
+                sendWelcomeStaff({
+                    phone: staffData.mobile,
+                    name,
+                    userId,
+                }).catch(console.error);
+            }
+
+            await createNotification({
+                userId: 'admin',
+                message: `A new staff member, ${name}, has been added.`,
+                link: `/admin/staff`
+            });
+        } catch (error: any) {
+            console.error(`Error finishing staff setup for ${email}:`, error);
+            // Deliberately omit `userId` here even though the Auth user was already
+            // created: the client treats a present `userId` as success (shows the
+            // success toast and redirects), so a failure path must not include it.
+            return { message: `Staff login was created, but saving their profile failed: ${error.message}` };
+        }
 
         return { userId, message: "Staff member created and welcome email sent." };
     }
