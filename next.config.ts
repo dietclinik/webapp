@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   // silences Next's "Turbopack + webpack config" warning.
   turbopack: {},
   experimental: {
+    // Lets `next dev`/`next build` automatically apply future security-only
+    // patch upgrades the same way this one was applied.
+    agentUpgrade: 'security',
     serverActions: {
       // Several flows upload images as base64 data URIs through a server action
       // in one request (e.g. up to 4 customer body photos, or a staff photo +
