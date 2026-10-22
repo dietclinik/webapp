@@ -5,7 +5,7 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { BookCopy, Home, IndianRupee, Settings, Users, ShoppingCart, Receipt, Bell, ShieldAlert, UserPlus, Dumbbell, Video, ArrowUpRight, Building2, Activity, MailQuestion, Megaphone, MessageSquare, Trophy, UserCircle, RotateCcw, Calculator } from 'lucide-react';
+import { BookCopy, Home, IndianRupee, Settings, Users, ShoppingCart, Receipt, Bell, ShieldAlert, UserPlus, Dumbbell, Video, ArrowUpRight, Building2, Activity, MailQuestion, Megaphone, MessageSquare, Trophy, UserCircle, RotateCcw, Calculator, LifeBuoy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/user-nav';
 import { Logo } from '@/components/logo';
@@ -193,6 +193,7 @@ function AdminAuthWrapper({ children }: { children: ReactNode }) {
             ]
         },
         { href: "/admin/contact-submissions", icon: MailQuestion, label: "Contact Form" },
+        { href: "/admin/support", icon: LifeBuoy, label: "Support Tickets" },
         { href: "/admin/revenue", icon: ArrowUpRight, label: "Revenue" },
         { href: "/admin/expenses", icon: Receipt, label: "Expenses" },
         { href: "/admin/settings", icon: Settings, label: "Settings" },

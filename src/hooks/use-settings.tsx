@@ -10,6 +10,9 @@ interface Settings {
   homepageSettings?: any;
   paymentSettings?: any;
   customFields?: any;
+  pageAccess?: any;
+  activitySettings?: any;
+  contactPageSettings?: any;
 }
 
 interface SettingsContextType {

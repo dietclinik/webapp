@@ -24,7 +24,7 @@ import { collection, doc, getDoc, Timestamp, writeBatch } from "firebase/firesto
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from "@/components/firebase-provider";
 import { processNewCustomer, checkCustomerExists } from "@/app/actions";
-import type { ProcessCustomerInput } from "@/ai/flows/send-welcome-email-flow";
+import type { ProcessCustomerInput } from "@/app/types";
 import { calculateMacros, type MacrosOutput } from "@/ai/flows/calculate-macros-flow";
 import { calculateBodyFat } from "@/ai/flows/calculate-body-fat-flow";
 import RazorpayButton from "@/components/razorpay-button";

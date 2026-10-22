@@ -1,6 +1,6 @@
 import { db, admin } from './firebase-admin';
 import { sendRenewalReminder, sendPlanExpired, sendDietLogReminder } from './whatsapp-helpers';
-import { differenceInDays, startOfDay, endOfDay, isSameDay } from 'date-fns';
+import { differenceInDays, startOfDay, endOfDay, isSameDay, format } from 'date-fns';
 
 /**
  * Check and send renewal reminders for customers
@@ -140,15 +140,23 @@ export async function sendDailyDietLogReminders() {
             const customer = customerDoc.data();
             const customerId = customerDoc.id;
 
-            // Check if there's a log for today in 'dietLogs' collection
-            const logSnapshot = await db.collection('dietLogs')
-                .where('userId', '==', customerId)
-                .where('date', '>=', admin.firestore.Timestamp.fromDate(todayStart))
-                .where('date', '<=', admin.firestore.Timestamp.fromDate(todayEnd))
-                .limit(1)
-                .get();
+            // Check if there's a log for today, in either of the two places a diet log
+            // can actually live: a dietician-assigned plan log (one doc per day, keyed
+            // by date string) or a self-built plan log (a collection with a `date` field).
+            // There is no top-level 'dietLogs' collection -- nothing ever wrote to it, so
+            // this check always came back empty and reminded every customer every day.
+            const todayKey = format(todayStart, 'yyyy-MM-dd');
+            const [dieticianLogSnap, selfLogSnapshot] = await Promise.all([
+                db.collection('users').doc(customerId).collection('dieticianPlanLogs').doc(todayKey).get(),
+                db.collection('users').doc(customerId).collection('selfDietPlans')
+                    .where('date', '>=', admin.firestore.Timestamp.fromDate(todayStart))
+                    .where('date', '<=', admin.firestore.Timestamp.fromDate(todayEnd))
+                    .limit(1)
+                    .get(),
+            ]);
+            const hasLoggedToday = dieticianLogSnap.exists || !selfLogSnapshot.empty;
 
-            if (logSnapshot.empty) {
+            if (!hasLoggedToday) {
                 // No log found, send reminder
                 if (customer.mobile) {
                     try {

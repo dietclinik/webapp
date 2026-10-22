@@ -5,7 +5,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Loader2, User, HeartPulse, FileText, IndianRupee, Utensils, BookCopy, MessageSquare, Ruler, Ban, NotebookText, Camera, Activity, TrendingUp, TrendingDown, Scale, Info, Building, Weight } from "lucide-react";
+import { ChevronLeft, Loader2, User, HeartPulse, FileText, IndianRupee, Utensils, BookCopy, MessageSquare, Ruler, Ban, NotebookText, Camera, Activity, TrendingUp, TrendingDown, Scale, Info, Building, Weight, Check, X } from "lucide-react";
 import { format, isToday, isPast, startOfDay, endOfDay, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, addMonths, subMonths, isSameDay } from "date-fns";
 import { doc, getDoc, collection, getDocs, Timestamp, query, where, updateDoc, orderBy, serverTimestamp, addDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";

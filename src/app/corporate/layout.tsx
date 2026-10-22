@@ -44,7 +44,6 @@ function PageAccessWrapper({ children }: { children: ReactNode }) {
     const [hasAccess, setHasAccess] = useState<boolean | null>(null);
     const [accessRule, setAccessRule] = useState<any | null>(null);
     const [subscriptionExpired, setSubscriptionExpired] = useState<boolean>(false);
-    const [isPartnerCustomer, setIsPartnerCustomer] = useState<boolean>(false);
 
     useEffect(() => {
         const checkAccess = async () => {
@@ -60,25 +59,23 @@ function PageAccessWrapper({ children }: { children: ReactNode }) {
 
             const customerData = customerSnap.data();
             const endDate = customerData.subscriptionEndDate?.toDate();
-            
-            if (customerData.vendorId) {
-                setIsPartnerCustomer(true);
-            }
-            
+
             if (endDate && new Date() > endDate) {
                 setSubscriptionExpired(true);
-                // Allow access only to subscription and profile page if expired
-                if (pathname === '/dashboard/subscription' || pathname === '/dashboard/profile') {
+                // Allow access only to the profile page if expired (there is no
+                // self-service /corporate/subscription page -- corporate accounts
+                // are managed by the employer, not renewed by the individual).
+                if (pathname === '/corporate/profile') {
                     setHasAccess(true);
                 } else {
                     setHasAccess(false);
                 }
                 return;
             }
-            
+
             setSubscriptionExpired(false);
 
-            if (pathname === '/dashboard/subscription' || pathname === '/dashboard/profile' || pathname.startsWith('/dashboard/meetings')) {
+            if (pathname === '/corporate/profile' || pathname.startsWith('/corporate/meetings')) {
                 setHasAccess(true);
                 return;
             }
@@ -137,10 +134,9 @@ function PageAccessWrapper({ children }: { children: ReactNode }) {
 
     if (!hasAccess) {
         if (subscriptionExpired) {
-             const message = isPartnerCustomer 
-                ? "Your Subscription has ended, Kindly Contact your Gym/Fitness Center/Dietician to renew it" 
-                : "Your subscription has Ended, Kindly renew it to continue accessing this page.";
-
+            // Corporate accounts are managed by the employer, not renewed by the
+            // individual -- there is no self-service /corporate/subscription page,
+            // so always point the user at their admin rather than a broken link.
             return (
                  <div className="flex items-center justify-center h-full">
                     <Card className="w-full max-w-lg text-center">
@@ -149,17 +145,8 @@ function PageAccessWrapper({ children }: { children: ReactNode }) {
                                 <ShieldAlert className="h-8 w-8 text-destructive" />
                             </div>
                             <CardTitle className="mt-4 text-2xl">Subscription Expired</CardTitle>
-                             <CardDescription>{message}</CardDescription>
+                             <CardDescription>Your subscription has ended. Kindly contact your corporate administrator to renew it.</CardDescription>
                         </CardHeader>
-                        {!isPartnerCustomer && (
-                            <CardContent>
-                                <Link href="/dashboard/subscription">
-                                    <Button style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
-                                        Renew Now
-                                    </Button>
-                                </Link>
-                            </CardContent>
-                        )}
                     </Card>
                 </div>
             )
@@ -172,15 +159,8 @@ function PageAccessWrapper({ children }: { children: ReactNode }) {
                             <Lock className="h-8 w-8 text-primary" />
                         </div>
                         <CardTitle className="mt-4 text-2xl">Upgrade to Access This Feature</CardTitle>
-                         <CardDescription>{accessRule?.message || "This page is available on a higher-tier plan."}</CardDescription>
+                         <CardDescription>{accessRule?.message || "This page is available on a higher-tier plan. Contact your corporate administrator to upgrade."}</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <Link href="/dashboard/subscription">
-                            <Button style={{ backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' }}>
-                                View Plans & Upgrade
-                            </Button>
-                        </Link>
-                    </CardContent>
                 </Card>
             </div>
         )
